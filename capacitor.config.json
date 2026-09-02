@@ -1,0 +1,5 @@
+{
+  "appId": "com.trustpay.app",
+  "appName": "TrustPay",
+  "webDir": "dist"
+}
