@@ -15,20 +15,26 @@ export default function Register() {
     setError('');
     
     try {
-      const res = await fetch('http://localhost:3001/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
+      // MOCK BACKEND FOR HACKATHON DEMO (Bypasses localhost:3001)
+      await new Promise(resolve => setTimeout(resolve, 500)); // fake network delay
       
-      const data = await res.json();
-      
-      if (!res.ok) {
-        setError(data.error || 'Registration failed');
+      const users = JSON.parse(localStorage.getItem('mock_users') || '{}');
+      if (users[username]) {
+        setError('Username already exists');
         return;
       }
       
-      login(data.user, data.token);
+      const newUser = {
+        username,
+        password, // In a real app, never store plaintext passwords!
+        balance: 10000,
+        upiPin: null
+      };
+      users[username] = newUser;
+      localStorage.setItem('mock_users', JSON.stringify(users));
+
+      // Auto login after register
+      login(newUser, 'mock-jwt-token-123');
       navigate('/');
     } catch (err) {
       setError('Network error connecting to server');

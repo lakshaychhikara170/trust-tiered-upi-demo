@@ -15,21 +15,20 @@ export default function Login() {
     setError('');
     
     try {
-      const res = await fetch('http://localhost:3001/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
+      // MOCK BACKEND FOR HACKATHON DEMO (Bypasses localhost:3001)
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      const data = await res.json();
+      const users = JSON.parse(localStorage.getItem('mock_users') || '{}');
+      const user = users[username];
       
-      if (!res.ok) {
-        setError(data.error || 'Login failed');
-        return;
+      if (user && user.password === password) {
+        // Remove password before storing in context
+        const { password: _, ...userWithoutPassword } = user;
+        login(userWithoutPassword, 'mock-jwt-token-123');
+        navigate('/');
+      } else {
+        setError('Invalid username or password');
       }
-      
-      login(data.user, data.token);
-      navigate('/');
     } catch (err) {
       setError('Network error connecting to server');
     }

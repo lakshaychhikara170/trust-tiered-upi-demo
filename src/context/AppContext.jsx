@@ -27,21 +27,24 @@ export const AppProvider = ({ children }) => {
         return;
       }
       try {
-        const res = await fetch('http://localhost:3001/api/auth/me', {
-          headers: { 'Authorization': `Bearer ${authToken}` }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setCurrentUser(data.user);
-          setBalance(data.user.balance);
-          setThreshold(data.user.freezeThreshold);
+        // MOCK BACKEND
+        const users = JSON.parse(localStorage.getItem('mock_users') || '{}');
+        const activeUser = Object.values(users).find(u => u.username === localStorage.getItem('active_username'));
+        
+        if (activeUser) {
+          const { password: _, ...userWithoutPassword } = activeUser;
+          setCurrentUser(userWithoutPassword);
+          setBalance(activeUser.balance || 10000);
+          setThreshold(activeUser.freezeThreshold || 50000);
         } else {
           logout();
         }
       } catch (err) {
-        console.error('Failed to fetch user', err);
+        console.error("Auth verification failed", err);
+        logout();
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     fetchUser();
   }, [authToken]);
@@ -49,23 +52,26 @@ export const AppProvider = ({ children }) => {
   // Sync balance and threshold changes to backend
   useEffect(() => {
     if (currentUser && authToken && !loading) {
-      fetch('http://localhost:3001/api/auth/update', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
-        },
-        body: JSON.stringify({ balance, freezeThreshold: threshold })
-      }).catch(console.error);
+      // MOCK BACKEND UPDATE
+      const users = JSON.parse(localStorage.getItem('mock_users') || '{}');
+      const activeUsername = localStorage.getItem('active_username');
+      if (activeUsername && users[activeUsername]) {
+        users[activeUsername].balance = balance;
+        users[activeUsername].freezeThreshold = threshold;
+        localStorage.setItem('mock_users', JSON.stringify(users));
+      }
     }
   }, [balance, threshold, currentUser, authToken, loading]);
 
   const login = (user, token) => {
     localStorage.setItem('authToken', token);
+    if (user && user.username) {
+      localStorage.setItem('active_username', user.username);
+    }
     setAuthToken(token);
     setCurrentUser(user);
-    setBalance(user.balance);
-    setThreshold(user.freezeThreshold);
+    setBalance(user.balance || 10000);
+    setThreshold(user.freezeThreshold || 50000);
   };
 
   const logout = () => {
@@ -77,15 +83,12 @@ export const AppProvider = ({ children }) => {
   };
 
   const setUpiPin = async (pin) => {
-    const res = await fetch('http://localhost:3001/api/auth/set-pin', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`
-      },
-      body: JSON.stringify({ pin })
-    });
-    if (res.ok) {
+    // MOCK BACKEND
+    const users = JSON.parse(localStorage.getItem('mock_users') || '{}');
+    const activeUsername = localStorage.getItem('active_username');
+    if (activeUsername && users[activeUsername]) {
+      users[activeUsername].upiPin = pin;
+      localStorage.setItem('mock_users', JSON.stringify(users));
       setCurrentUser(prev => ({ ...prev, hasUpiPin: true }));
       return true;
     }
@@ -93,15 +96,13 @@ export const AppProvider = ({ children }) => {
   };
 
   const verifyUpiPin = async (pin) => {
-    const res = await fetch('http://localhost:3001/api/auth/verify-pin', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`
-      },
-      body: JSON.stringify({ pin })
-    });
-    return res.ok;
+    // MOCK BACKEND
+    const users = JSON.parse(localStorage.getItem('mock_users') || '{}');
+    const activeUsername = localStorage.getItem('active_username');
+    if (activeUsername && users[activeUsername]) {
+      return users[activeUsername].upiPin === pin;
+    }
+    return false;
   };
 
   const addTransaction = (txn) => {
