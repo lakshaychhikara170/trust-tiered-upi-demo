@@ -1,26 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-import { ArrowLeft, MoreHorizontal, Search, Scan as ScanIcon, Plus, Copy, CheckCircle2, FileText, Share2, Building2, ChevronDown, ShieldCheck, Activity, AlertCircle } from 'lucide-react';
+import { isScamRecipient } from '../utils/mockData';
+import { ArrowLeft, MoreHorizontal, Search, Scan as ScanIcon, Plus, Copy, CheckCircle2, FileText, Share2, Building2, ChevronDown, ShieldCheck, Activity, AlertCircle, ShieldAlert } from 'lucide-react';
 
 export default function Pay() {
-  const { merchants, trustHistory, threshold, balance, setBalance, addTransaction, addToTrustHistory, currentUser, setUpiPin, verifyUpiPin } = useAppContext();
+  const { merchants, trustHistory, threshold, balance, setBalance, addTransaction, addToTrustHistory, disputeTransaction, currentUser, setUpiPin, verifyUpiPin } = useAppContext();
   const navigate = useNavigate();
   const location = useLocation();
   
   const [recipientInput, setRecipientInput] = useState('');
-  
+  const [amount, setAmount] = useState('');
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [successData, setSuccessData] = useState(null);
+
   useEffect(() => {
     if (location.state?.scannedRecipient) {
       setRecipientInput(location.state.scannedRecipient);
     } else if (location.state?.prefillScenario === 'high-risk') {
       setRecipientInput('scammer@fakepay');
-      setAmount('45000');
+      setAmount('8000');
     }
   }, [location.state]);
-  const [amount, setAmount] = useState('');
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [successData, setSuccessData] = useState(null);
 
   // PIN Modal State
   const [showPinModal, setShowPinModal] = useState(false);
@@ -35,17 +36,19 @@ export default function Pay() {
   let recipient = merchants.find(c => c.upiId === recipientInput || c.name === recipientInput);
   let isMerchant = recipient?.verified || false;
   let finalUpiId = recipient ? recipient.upiId : recipientInput;
-  const isHighRisk = !isMerchant && !trustHistory.some(t => t.upiId === finalUpiId);
+  const isScam = isScamRecipient(finalUpiId, recipient?.name || recipientInput);
+  // A scammer is ALWAYS high-risk, even if somehow in contacts/history!
+  const isHighRisk = isScam || (!isMerchant && !trustHistory.some(t => t.upiId === finalUpiId));
 
   useEffect(() => {
     if (recipientInput.length > 3) {
       setAiScanStatus('idle');
       setIsAiExpanded(false);
-      const t1 = setTimeout(() => setAiScanStatus('scanning'), 1000);
+      const t1 = setTimeout(() => setAiScanStatus('scanning'), 800);
       const t2 = setTimeout(() => {
         setAiScanStatus(isHighRisk ? 'warning' : 'safe');
         setIsAiExpanded(true);
-      }, 2500);
+      }, 2000);
       return () => { clearTimeout(t1); clearTimeout(t2); };
     } else {
       setAiScanStatus('idle');
@@ -104,21 +107,29 @@ export default function Pay() {
     setTimeout(() => {
       const numAmount = parseFloat(amount);
       let recipient = allContacts.find(c => c.upiId === recipientInput || c.name === recipientInput);
-      let isNew = !recipient;
-      let isMerchant = recipient?.verified || false;
       let recipientName = recipient ? recipient.name : recipientInput;
       let finalUpiId = recipient ? recipient.upiId : recipientInput;
+      const isScam = isScamRecipient(finalUpiId, recipientName);
+      let isNew = !recipient && !trustHistory.some(t => t.upiId === finalUpiId);
+      let isMerchant = recipient?.verified || false;
 
       const newTxn = {
         id: 'txn_' + Date.now(),
-        recipient: recipientName,
+        recipient: isScam && !recipient ? 'Scammy User' : recipientName,
         upiId: finalUpiId,
         amount: numAmount,
         date: new Date().toISOString(),
-        isMerchant
+        isMerchant,
+        isScamFlagged: isScam
       };
 
-      if (isMerchant || (!isNew)) {
+      if (isScam) {
+        // SCAMMER: NEVER COMPLETE PAYMENT! ENFORCE IMMEDIATE 24H SAFETY ESCROW HOLD!
+        newTxn.status = 'Held';
+        addTransaction(newTxn);
+        setShowProcessingScreen(false);
+        navigate(`/held/${newTxn.id}`);
+      } else if (isMerchant || (!isNew)) {
         newTxn.status = 'Completed';
         setBalance(b => b - numAmount);
         addTransaction(newTxn);
@@ -255,12 +266,29 @@ export default function Pay() {
             </div>
           </div>
 
-          <div className="flex gap-4 w-full mb-6">
-            <button className="flex-1 py-3.5 border border-gray-200 rounded-xl font-bold text-gray-700">
-              View Details
+          {/* 24-Hour Safety Hold Action */}
+          <div className="w-full bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6 text-left">
+            <div className="flex items-center gap-2 text-amber-900 font-bold text-sm mb-1">
+              <ShieldAlert className="w-4 h-4 text-amber-600" />
+              24-Hour UPI Safety Window Active
+            </div>
+            <p className="text-xs text-amber-700 mb-3 leading-relaxed">
+              Suspect fraud, unauthorized transfer, or sent to the wrong person? You can put this payment on immediate hold.
+            </p>
+            <button 
+              onClick={() => {
+                disputeTransaction(successData.id);
+                navigate(`/held/${successData.id}`);
+              }}
+              className="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <AlertCircle className="w-4 h-4" /> Freeze & Put Payment on Hold
             </button>
-            <button onClick={() => navigate('/')} className="flex-1 py-3.5 bg-indigo-600 rounded-xl font-bold text-white shadow-md shadow-indigo-200">
-              Back to Home
+          </div>
+
+          <div className="flex gap-4 w-full mb-6">
+            <button onClick={() => navigate('/')} className="w-full py-3.5 bg-indigo-600 rounded-xl font-bold text-white shadow-md shadow-indigo-200 cursor-pointer">
+              Back to Dashboard
             </button>
           </div>
 
@@ -308,17 +336,24 @@ export default function Pay() {
             {!isAiExpanded && (
               <div className="relative w-full h-full flex items-center justify-center rounded-full">
                 {/* Ping rings to make it feel alive */}
-                {aiScanStatus === 'warning' && <div className="absolute inset-0 bg-amber-400 rounded-full animate-ping opacity-30"></div>}
-                {aiScanStatus === 'safe' && <div className="absolute inset-0 bg-emerald-400 rounded-full animate-ping opacity-30"></div>}
+                {isScam ? (
+                  <div className="absolute inset-0 bg-red-500 rounded-full animate-ping opacity-50"></div>
+                ) : aiScanStatus === 'warning' ? (
+                  <div className="absolute inset-0 bg-amber-400 rounded-full animate-ping opacity-30"></div>
+                ) : aiScanStatus === 'safe' ? (
+                  <div className="absolute inset-0 bg-emerald-400 rounded-full animate-ping opacity-30"></div>
+                ) : null}
                 
                 <div className={`relative z-10 w-full h-full flex items-center justify-center rounded-full transition-colors ${
                   aiScanStatus === 'scanning' ? 'bg-indigo-100' : 
+                  isScam ? 'bg-red-100' :
                   aiScanStatus === 'warning' ? 'bg-amber-100' : 
                   aiScanStatus === 'safe' ? 'bg-emerald-100' : 'bg-gray-100'
                 }`}>
                   {aiScanStatus === 'scanning' && <div className="absolute inset-0 border-[3px] border-t-indigo-600 border-transparent rounded-full animate-spin"></div>}
                   
-                  {aiScanStatus === 'warning' ? <ShieldCheck className="w-5 h-5 text-amber-600 animate-pulse" /> :
+                  {isScam ? <ShieldAlert className="w-5 h-5 text-red-600 animate-pulse" /> :
+                   aiScanStatus === 'warning' ? <ShieldCheck className="w-5 h-5 text-amber-600 animate-pulse" /> :
                    aiScanStatus === 'safe' ? <ShieldCheck className="w-5 h-5 text-emerald-600" /> :
                    <Activity className={`w-5 h-5 ${aiScanStatus === 'scanning' ? 'text-indigo-600 animate-pulse' : 'text-gray-400'}`} />}
                 </div>
@@ -330,9 +365,9 @@ export default function Pay() {
               <div className="w-full flex flex-col animate-in fade-in zoom-in-95 duration-500 delay-150">
                 <div className="flex items-center justify-between mb-2 pb-2 border-b border-gray-800">
                   <div className="flex items-center gap-2">
-                    <Activity className={`w-4 h-4 ${aiScanStatus === 'warning' ? 'text-amber-500 animate-pulse' : 'text-emerald-500'}`} />
-                    <span className="font-bold text-[11px] text-gray-300 uppercase tracking-widest">
-                      AI Trust Analysis
+                    <Activity className={`w-4 h-4 ${isScam ? 'text-red-500 animate-pulse' : aiScanStatus === 'warning' ? 'text-amber-500 animate-pulse' : 'text-emerald-500'}`} />
+                    <span className={`font-bold text-[11px] uppercase tracking-widest ${isScam ? 'text-red-400' : 'text-gray-300'}`}>
+                      {isScam ? 'FRAUD ALERT' : 'AI Trust Analysis'}
                     </span>
                   </div>
                   <div className="w-5 h-5 rounded-full hover:bg-gray-800 flex items-center justify-center text-gray-500">
@@ -341,11 +376,21 @@ export default function Pay() {
                 </div>
                 
                 <div className="font-mono text-[10px] space-y-1.5 mt-1">
-                  {aiScanStatus === 'warning' ? (
+                  {isScam ? (
+                    <>
+                      <div className="text-red-400 font-bold flex justify-between"><span>&gt; RECIPIENT:</span> <span className="text-red-500 font-extrabold animate-pulse">SUSPECTED SCAMMER</span></div>
+                      <div className="text-gray-400 flex justify-between"><span>&gt; RISK SCORE:</span> <span className="text-red-400 font-bold">99.4% (CRITICAL)</span></div>
+                      <div className="text-gray-400 flex justify-between"><span>&gt; COMPLAINTS:</span> <span className="text-red-400">14 Active Flags</span></div>
+                      <div className="text-amber-400 font-bold flex justify-between"><span>&gt; AI VERDICT:</span> <span className="text-red-400 font-bold">DO NOT PAY</span></div>
+                      <div className="mt-2 text-center text-[10px] font-bold text-red-300 bg-red-950/70 border border-red-800/60 p-1.5 rounded animate-pulse">
+                        MANDATORY 24H SAFETY HOLD
+                      </div>
+                    </>
+                  ) : aiScanStatus === 'warning' ? (
                     <>
                       <div className="text-amber-400 font-bold flex justify-between"><span>&gt; RECIPIENT:</span> <span>UNKNOWN</span></div>
                       <div className="text-gray-400 flex justify-between"><span>&gt; ACCT AGE:</span> <span>&lt; 24 HOURS</span></div>
-                      <div className="text-red-400 flex justify-between"><span>&gt; HISTORY:</span> <span>FLAGGED (3x)</span></div>
+                      <div className="text-red-400 flex justify-between"><span>&gt; HISTORY:</span> <span>UNVERIFIED</span></div>
                       <div className="mt-3 text-center text-[10px] font-bold text-amber-500 bg-amber-950/40 border border-amber-900/30 p-1.5 rounded">
                         HOLD RULES ACTIVATED
                       </div>

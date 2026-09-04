@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { INITIAL_MERCHANTS, INITIAL_TRUST_HISTORY, INITIAL_TRANSACTIONS } from '../utils/mockData';
+import { INITIAL_MERCHANTS, INITIAL_TRUST_HISTORY, INITIAL_TRANSACTIONS, isScamRecipient } from '../utils/mockData';
 
 const AppContext = createContext();
 
@@ -114,9 +114,44 @@ export const AppProvider = ({ children }) => {
   };
   
   const addToTrustHistory = (contact) => {
+    if (!contact?.upiId) return;
+    // CRITICAL: Never trust a scammer or flagged address
+    if (isScamRecipient(contact.upiId, contact.name)) return;
     if (!trustHistory.find(t => t.upiId === contact.upiId)) {
       setTrustHistory(prev => [...prev, contact]);
     }
+  };
+
+  const removeFromTrustHistory = (upiId) => {
+    setTrustHistory(prev => prev.filter(t => t.upiId !== upiId));
+  };
+
+  const clearTrustHistory = () => {
+    setTrustHistory([]);
+  };
+
+  const updateThreshold = (val) => {
+    setThreshold(val);
+  };
+
+  // Dispute / Freeze a transaction and put it on hold
+  const disputeTransaction = (id, reason = 'Suspected Fraud') => {
+    const txn = transactions.find(t => t.id === id);
+    if (!txn) return false;
+
+    // If money was previously completed/deducted, protect user by restoring funds to escrow balance
+    if (txn.status === 'Completed') {
+      setBalance(prev => prev + txn.amount);
+    }
+
+    // Set status to 'Held'
+    updateTransactionStatus(id, 'Held');
+
+    // Permanently remove from trusted history
+    if (txn.upiId) {
+      removeFromTrustHistory(txn.upiId);
+    }
+    return true;
   };
 
   const value = {
@@ -133,9 +168,13 @@ export const AppProvider = ({ children }) => {
     transactions,
     addTransaction,
     updateTransactionStatus,
+    disputeTransaction,
     merchants,
     trustHistory,
-    addToTrustHistory
+    addToTrustHistory,
+    removeFromTrustHistory,
+    clearTrustHistory,
+    updateThreshold
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

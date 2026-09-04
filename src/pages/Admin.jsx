@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 export default function Admin() {
   const { transactions, updateTransactionStatus, setBalance } = useAppContext();
   const navigate = useNavigate();
-  const underReviewTxns = transactions.filter(t => t.status === 'Under Review');
+  const underReviewTxns = transactions.filter(t => t.status === 'Under Review' || t.status === 'Held');
   
   const [selectedTxn, setSelectedTxn] = useState(null);
   const [accountStatus, setAccountStatus] = useState(SUSPICIOUS_ACCOUNT_HISTORY.status);
@@ -213,10 +213,14 @@ export default function Admin() {
             >
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <AlertCircle className="w-4 h-4 text-red-500" />
-                  <span className="font-bold text-red-600 text-sm uppercase tracking-wide">User Reported Fraud</span>
+                  <AlertCircle className={`w-4 h-4 ${txn.status === 'Under Review' ? 'text-red-500' : 'text-amber-500'}`} />
+                  <span className={`font-bold text-sm uppercase tracking-wide ${txn.status === 'Under Review' ? 'text-red-600' : 'text-amber-600'}`}>
+                    {txn.status === 'Under Review' ? 'User Reported Fraud' : 'AI Safety Escrow Hold'}
+                  </span>
                 </div>
-                <div className="font-medium text-slate-800">Potential Scam Payment</div>
+                <div className="font-medium text-slate-800">
+                  {txn.isScamFlagged ? '⚠️ High-Risk Scammer Account' : 'Suspicious / Untrusted Payment'}
+                </div>
                 <div className="text-sm text-slate-500 mt-1">Target: {txn.upiId}</div>
               </div>
               <div className="text-right flex flex-col items-end gap-2">

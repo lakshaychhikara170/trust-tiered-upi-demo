@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-import { Settings, ShieldCheck, CheckCircle2, Clock, AlertCircle, Bell, Eye, Plus, FileText, QrCode, User, Smartphone, CreditCard, Send, MoreHorizontal, UserCircle, Home as HomeIcon, History, ChevronDown } from 'lucide-react';
+import { Settings, ShieldCheck, CheckCircle2, Clock, AlertCircle, Bell, Eye, Plus, FileText, QrCode, User, Smartphone, CreditCard, Send, MoreHorizontal, UserCircle, Home as HomeIcon, History, ChevronDown, AlertTriangle, ShieldAlert } from 'lucide-react';
 
 export default function Home() {
-  const { balance, setBalance, transactions, currentUser, logout } = useAppContext();
+  const { balance, setBalance, transactions, currentUser, logout, disputeTransaction } = useAppContext();
   const navigate = useNavigate();
   const [toastMessage, setToastMessage] = useState('');
   
@@ -51,8 +51,9 @@ export default function Home() {
   const getStatusColor = (status) => {
     switch (status) {
       case 'Completed': return 'text-emerald-600';
-      case 'Held': return 'text-amber-600';
-      case 'Under Review': return 'text-red-600';
+      case 'Held': return 'text-amber-600 font-bold';
+      case 'Under Review': return 'text-red-600 font-bold';
+      case 'Cancelled': return 'text-gray-400 line-through';
       default: return 'text-gray-600';
     }
   };
@@ -321,17 +322,28 @@ export default function Home() {
         <>
           <div className="fixed inset-0 bg-black/40 z-50 animate-in fade-in" onClick={() => setSelectedTxn(null)}></div>
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[340px] bg-white z-50 rounded-3xl p-6 shadow-2xl animate-in zoom-in-95 flex flex-col items-center">
-            <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mb-4">
-              <CheckCircle2 className="w-10 h-10 text-emerald-600" />
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
+              selectedTxn.status === 'Completed' ? 'bg-emerald-100 text-emerald-600' :
+              selectedTxn.status === 'Held' ? 'bg-amber-100 text-amber-600' :
+              selectedTxn.status === 'Under Review' ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-500'
+            }`}>
+              {selectedTxn.status === 'Completed' ? <CheckCircle2 className="w-10 h-10 stroke-[2.5]" /> :
+               selectedTxn.status === 'Held' ? <Clock className="w-10 h-10 stroke-[2.5]" /> :
+               <ShieldAlert className="w-10 h-10 stroke-[2.5]" />}
             </div>
-            <h2 className="font-bold text-gray-900 text-xl mb-1">Payment Successful</h2>
+            
+            <h2 className="font-bold text-gray-900 text-xl mb-1 text-center">
+              {selectedTxn.status === 'Completed' ? 'Payment Completed' :
+               selectedTxn.status === 'Held' ? 'Payment on Safety Hold' :
+               selectedTxn.status === 'Under Review' ? 'Under Fraud Review' : 'Payment Cancelled'}
+            </h2>
             <div className="text-3xl font-bold text-gray-900 mb-6">
               ₹{selectedTxn.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
             </div>
             
-            <div className="w-full bg-gray-50 rounded-2xl p-4 space-y-3 mb-6 border border-gray-100">
+            <div className="w-full bg-gray-50 rounded-2xl p-4 space-y-3 mb-5 border border-gray-100 text-left">
               <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-500">Paid to</span>
+                <span className="text-gray-500">Recipient</span>
                 <span className="font-bold text-gray-900">{selectedTxn.recipient}</span>
               </div>
               <div className="flex justify-between items-center text-sm">
@@ -344,13 +356,47 @@ export default function Home() {
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-gray-500">Status</span>
-                <span className="font-bold text-emerald-600">Completed</span>
+                <span className={`font-bold ${getStatusColor(selectedTxn.status)}`}>
+                  {selectedTxn.status}
+                </span>
               </div>
             </div>
 
+            {/* Put on Hold / Dispute Action for Completed Payments */}
+            {selectedTxn.status === 'Completed' && (
+              <button 
+                onClick={() => {
+                  const txnId = selectedTxn.id;
+                  disputeTransaction(txnId);
+                  setSelectedTxn(null);
+                  showToast('Payment put on safety hold! Funds frozen in escrow.');
+                  navigate(`/held/${txnId}`);
+                }}
+                className="w-full py-3 bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-800 font-bold rounded-xl mb-3 flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm text-sm"
+              >
+                <AlertTriangle className="w-4 h-4 text-amber-600" />
+                Put on Safety Hold / Dispute
+              </button>
+            )}
+
+            {/* Direct navigation to safety hold screen for Held / Under Review */}
+            {(selectedTxn.status === 'Held' || selectedTxn.status === 'Under Review') && (
+              <button 
+                onClick={() => {
+                  const txnId = selectedTxn.id;
+                  setSelectedTxn(null);
+                  navigate(`/held/${txnId}`);
+                }}
+                className="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl mb-3 flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md text-sm"
+              >
+                <ShieldAlert className="w-4 h-4 text-white" />
+                View Safety Hold & Bank Review
+              </button>
+            )}
+
             <button 
               onClick={() => setSelectedTxn(null)}
-              className="w-full py-3.5 bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-200"
+              className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-colors cursor-pointer"
             >
               Close
             </button>

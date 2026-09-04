@@ -29,3 +29,17 @@ export const SUSPICIOUS_ACCOUNT_HISTORY = {
   ],
   status: 'Active'
 };
+
+export const isScamRecipient = (upiId = '', name = '') => {
+  if (!upiId && !name) return false;
+  const target = `${upiId} ${name}`.toLowerCase();
+  return (
+    target.includes('scam') ||
+    target.includes('scammer') ||
+    target.includes('fakepay') ||
+    target.includes('fraud') ||
+    target.includes('phish') ||
+    upiId === 'scammer@fakepay' ||
+    upiId === 'scammer@bank'
+  );
+};
