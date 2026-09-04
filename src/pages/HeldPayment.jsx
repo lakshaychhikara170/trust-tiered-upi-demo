@@ -119,15 +119,15 @@ export default function HeldPayment() {
   const isScam = isScamRecipient(txn.upiId, txn.recipient) || txn.isScamFlagged;
 
   return (
-    <div className={`flex flex-col min-h-screen ${isScam ? 'bg-red-50' : 'bg-amber-50'}`}>
-      <div className="bg-white p-4 flex items-center gap-4 shadow-sm">
+    <div className={`flex flex-col h-screen overflow-y-auto ${isScam ? 'bg-red-50' : 'bg-amber-50'}`}>
+      <div className="bg-white p-4 flex items-center gap-4 shadow-sm sticky top-0 z-10">
         <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full">
           <ArrowLeft className="w-6 h-6" />
         </button>
         <h1 className="text-lg font-bold text-gray-800">{isScam ? 'Fraud Protection Alert' : 'Security Hold'}</h1>
       </div>
 
-      <div className="p-6 flex flex-col items-center text-center mt-4">
+      <div className="p-6 flex flex-col items-center text-center mt-4 pb-10">
         <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-5 ${isScam ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-amber-100 text-amber-500'}`}>
           {isScam ? <ShieldAlert className="w-10 h-10 stroke-[2.5]" /> : <Clock className="w-10 h-10" />}
         </div>
