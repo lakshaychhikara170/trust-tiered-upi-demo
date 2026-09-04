@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-import { ArrowLeft, AlertTriangle, Clock, ShieldAlert } from 'lucide-react';
+import { isScamRecipient } from '../utils/mockData';
+import { ArrowLeft, AlertTriangle, Clock, ShieldAlert, CheckCircle2 } from 'lucide-react';
 
 export default function HeldPayment() {
   const { id } = useParams();
@@ -108,46 +109,78 @@ export default function HeldPayment() {
     );
   }
 
+  const isScam = isScamRecipient(txn.upiId, txn.recipient) || txn.isScamFlagged;
+
   return (
-    <div className="flex flex-col min-h-screen bg-amber-50">
+    <div className={`flex flex-col min-h-screen ${isScam ? 'bg-red-50' : 'bg-amber-50'}`}>
       <div className="bg-white p-4 flex items-center gap-4 shadow-sm">
         <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full">
           <ArrowLeft className="w-6 h-6" />
         </button>
-        <h1 className="text-lg font-bold text-gray-800">Security Hold</h1>
+        <h1 className="text-lg font-bold text-gray-800">{isScam ? 'Fraud Protection Alert' : 'Security Hold'}</h1>
       </div>
 
-      <div className="p-6 flex flex-col items-center text-center mt-6">
-        <div className="w-20 h-20 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center mb-6">
-          <Clock className="w-10 h-10" />
+      <div className="p-6 flex flex-col items-center text-center mt-4">
+        <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-5 ${isScam ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-amber-100 text-amber-500'}`}>
+          {isScam ? <ShieldAlert className="w-10 h-10 stroke-[2.5]" /> : <Clock className="w-10 h-10" />}
         </div>
         
-        <h2 className="text-xl font-bold text-gray-800 mb-2">Payment Held for Safety</h2>
-        <p className="text-gray-600 mb-8 text-sm">
-          You are sending ₹{txn.amount.toLocaleString('en-IN')} to a new recipient ({txn.upiId}). This exceeds your safety threshold. The funds will be held for 24 hours before settling.
+        <h2 className="text-xl font-bold text-gray-900 mb-2">
+          {isScam ? 'AI Intercepted: Scam Suspect' : 'Payment Held for Safety'}
+        </h2>
+        <p className="text-gray-600 mb-6 text-sm leading-relaxed max-w-sm">
+          {isScam ? (
+            <span className="text-red-700 font-medium">
+              Our AI flagged <b>{txn.upiId}</b> with 14 fraud complaints. To protect your money, the ₹{txn.amount.toLocaleString('en-IN')} transfer has been <b>frozen in 24-hour escrow</b>.
+            </span>
+          ) : (
+            <>
+              You are sending ₹{txn.amount.toLocaleString('en-IN')} to a new recipient ({txn.upiId}). This exceeds your safety threshold. The funds will be held for 24 hours before settling.
+            </>
+          )}
         </p>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm w-full mb-8 border border-amber-200">
-          <div className="text-amber-600 font-bold mb-1">Time Remaining</div>
+        <div className={`bg-white p-5 rounded-2xl shadow-sm w-full mb-6 border ${isScam ? 'border-red-200' : 'border-amber-200'}`}>
+          <div className={`font-bold mb-1 text-sm ${isScam ? 'text-red-600' : 'text-amber-600'}`}>
+            {isScam ? 'Safety Escrow Remaining' : 'Time Remaining'}
+          </div>
           <div className="text-4xl font-mono text-gray-800 tracking-wider">
             {formatTime(timeLeft)}
           </div>
         </div>
 
         {!showReportForm ? (
-          <div className="w-full mt-auto">
+          <div className="w-full mt-auto space-y-3">
             <button 
               onClick={() => setShowReportForm(true)}
-              className="w-full flex items-center justify-center gap-2 bg-white text-red-600 border border-red-200 font-bold py-4 rounded-xl shadow-sm hover:bg-red-50 transition-colors"
+              className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-red-200 transition-colors cursor-pointer"
             >
               <AlertTriangle className="w-5 h-5" />
-              Report Fraud & Cancel
+              Report Fraud & Cancel Payment
             </button>
+            
             <button 
-              onClick={handleAuthorize}
-              className="w-full mt-4 text-gray-500 font-bold py-3 hover:bg-gray-100 rounded-xl transition-all cursor-pointer"
+              onClick={() => navigate('/admin')}
+              className="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl shadow-md transition-colors cursor-pointer text-sm"
             >
-              I authorize this payment
+              <ShieldAlert className="w-4 h-4 text-emerald-400" />
+              Simulate Bank Admin Review
+            </button>
+
+            {!isScam && (
+              <button 
+                onClick={handleAuthorize}
+                className="w-full text-gray-500 font-bold py-2.5 hover:bg-gray-100 rounded-xl transition-all cursor-pointer text-sm"
+              >
+                I authorize this payment anyway
+              </button>
+            )}
+
+            <button 
+              onClick={() => navigate('/')}
+              className="w-full text-gray-600 font-medium py-2 hover:underline transition-all cursor-pointer text-xs"
+            >
+              Back to Dashboard
             </button>
           </div>
         ) : (

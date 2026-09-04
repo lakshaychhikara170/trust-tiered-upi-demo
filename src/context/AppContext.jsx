@@ -13,11 +13,38 @@ export const AppProvider = ({ children }) => {
   const [balance, setBalance] = useState(50000);
   const [threshold, setThreshold] = useState(3000);
   
-  // For the demo, transactions and contacts are still kept local per user session
-  // In a real app, these would also be fetched from the DB based on currentUser.id
-  const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
+  // For the demo, transactions and contacts are persisted in localStorage per browser session
+  const [transactions, setTransactions] = useState(() => {
+    try {
+      const saved = localStorage.getItem('mock_transactions');
+      return saved ? JSON.parse(saved) : INITIAL_TRANSACTIONS;
+    } catch (e) {
+      return INITIAL_TRANSACTIONS;
+    }
+  });
   const [merchants] = useState(INITIAL_MERCHANTS);
-  const [trustHistory, setTrustHistory] = useState(INITIAL_TRUST_HISTORY);
+  const [trustHistory, setTrustHistory] = useState(() => {
+    try {
+      const saved = localStorage.getItem('mock_trust_history');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Automatically purge any scammers from trusted history
+        return parsed.filter(t => !isScamRecipient(t.upiId, t.name));
+      }
+      return INITIAL_TRUST_HISTORY;
+    } catch (e) {
+      return INITIAL_TRUST_HISTORY;
+    }
+  });
+
+  // Keep localStorage in sync
+  useEffect(() => {
+    localStorage.setItem('mock_transactions', JSON.stringify(transactions));
+  }, [transactions]);
+
+  useEffect(() => {
+    localStorage.setItem('mock_trust_history', JSON.stringify(trustHistory));
+  }, [trustHistory]);
 
   // Verify token and fetch user on load
   useEffect(() => {

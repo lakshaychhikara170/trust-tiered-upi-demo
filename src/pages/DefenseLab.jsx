@@ -5,7 +5,7 @@ import { useAppContext } from '../context/AppContext';
 
 export default function DefenseLab() {
   const navigate = useNavigate();
-  const { setBalance, clearTrustHistory, updateThreshold, transactions } = useAppContext();
+  const { setBalance, clearTrustHistory, updateThreshold, transactions, disputeTransaction } = useAppContext();
   
   const [activeSimulation, setActiveSimulation] = useState(null);
 
@@ -185,14 +185,23 @@ export default function DefenseLab() {
             ) : (
               <div className="space-y-3">
                 {completedTxns.slice(0, 5).map(txn => (
-                  <div key={txn.id} className="bg-gray-900 border border-emerald-900/20 p-4 rounded-xl flex justify-between items-center">
+                  <div 
+                    key={txn.id} 
+                    className="bg-gray-900 border border-emerald-900/20 hover:border-amber-500/50 p-4 rounded-xl flex justify-between items-center transition-all cursor-pointer"
+                    onClick={() => {
+                      disputeTransaction(txn.id);
+                      navigate(`/held/${txn.id}`);
+                    }}
+                  >
                     <div>
                       <div className="font-bold text-gray-200">{txn.recipient}</div>
                       <div className="text-xs text-gray-500">{new Date(txn.date).toLocaleString()}</div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right flex flex-col items-end gap-1">
                       <div className="font-bold text-emerald-500">₹{txn.amount.toLocaleString('en-IN')}</div>
-                      <div className="text-[10px] uppercase tracking-wider text-emerald-700 font-bold mt-1">Cleared</div>
+                      <span className="text-[10px] bg-amber-950/60 hover:bg-amber-900/80 text-amber-400 border border-amber-800/60 px-2 py-0.5 rounded font-bold transition-all flex items-center gap-1">
+                        Put on Hold &gt;
+                      </span>
                     </div>
                   </div>
                 ))}
