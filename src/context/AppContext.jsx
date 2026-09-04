@@ -17,7 +17,17 @@ export const AppProvider = ({ children }) => {
   const [transactions, setTransactions] = useState(() => {
     try {
       const saved = localStorage.getItem('mock_transactions');
-      return saved ? JSON.parse(saved) : INITIAL_TRANSACTIONS;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Detect stale 2023 hardcoded data — wipe it and start fresh
+        const hasStaleData = parsed.some(t => t.date && t.date.startsWith('2023'));
+        if (hasStaleData) {
+          localStorage.removeItem('mock_transactions');
+          return INITIAL_TRANSACTIONS;
+        }
+        return parsed;
+      }
+      return INITIAL_TRANSACTIONS;
     } catch (e) {
       return INITIAL_TRANSACTIONS;
     }

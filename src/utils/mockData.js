@@ -9,12 +9,14 @@ export const INITIAL_TRUST_HISTORY = [
   { id: 't2', name: 'Bob Johnson', upiId: 'bob@bank' },
 ];
 
+const daysAgo = (n) => new Date(Date.now() - n * 24 * 60 * 60 * 1000).toISOString();
+
 export const INITIAL_TRANSACTIONS = [
-  { id: 'txn1', recipient: 'Cafe Cupido', upiId: 'cafecupido@bank', amount: 450, status: 'Completed', date: '2023-10-25T14:30:00Z', isMerchant: true },
-  { id: 'txn2', recipient: 'Alice Smith', upiId: 'alice@bank', amount: 1200, status: 'Completed', date: '2023-10-24T09:15:00Z', isMerchant: false },
-  { id: 'txn3', recipient: 'Unknown Store', upiId: 'unknown@bank', amount: 4500, status: 'Held', date: '2023-10-23T18:00:00Z', isMerchant: false },
-  { id: 'txn4', recipient: 'Bob Johnson', upiId: 'bob@bank', amount: 200, status: 'Completed', date: '2023-10-22T12:00:00Z', isMerchant: false },
-  { id: 'txn5', recipient: 'Scammy User', upiId: 'scammer@bank', amount: 8000, status: 'Under Review', date: '2023-10-21T10:00:00Z', isMerchant: false },
+  { id: 'txn1', recipient: 'Cafe Cupido', upiId: 'cafecupido@bank', amount: 450, status: 'Completed', date: daysAgo(0.5), isMerchant: true },
+  { id: 'txn2', recipient: 'Alice Smith', upiId: 'alice@bank', amount: 1200, status: 'Completed', date: daysAgo(1), isMerchant: false },
+  { id: 'txn3', recipient: 'Unknown Store', upiId: 'unknown@bank', amount: 4500, status: 'Held', date: daysAgo(1.5), isMerchant: false },
+  { id: 'txn4', recipient: 'Bob Johnson', upiId: 'bob@bank', amount: 200, status: 'Completed', date: daysAgo(2), isMerchant: false },
+  { id: 'txn5', recipient: 'Scammy User', upiId: 'scammer@bank', amount: 8000, status: 'Under Review', date: daysAgo(2.5), isMerchant: false },
 ];
 
 // For the admin view, simulating a suspicious user's history

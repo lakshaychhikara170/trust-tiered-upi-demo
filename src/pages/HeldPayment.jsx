@@ -15,10 +15,19 @@ export default function HeldPayment() {
   const [holdNote, setHoldNote] = useState('');
   const [isReported, setIsReported] = useState(false);
 
-  // Time remaining mock logic (starts at 24:00:00)
-  const [timeLeft, setTimeLeft] = useState(24 * 60 * 60);
+  // Calculate remaining seconds of the 24h window from when the payment was made
+  const getInitialTimeLeft = () => {
+    if (!txn?.date) return 24 * 60 * 60;
+    const paymentTime = new Date(txn.date).getTime();
+    const elapsed = Math.floor((Date.now() - paymentTime) / 1000);
+    const remaining = 24 * 60 * 60 - elapsed;
+    return remaining > 0 ? remaining : 0;
+  };
+
+  const [timeLeft, setTimeLeft] = useState(getInitialTimeLeft);
 
   useEffect(() => {
+    if (timeLeft <= 0) return;
     const timer = setInterval(() => {
       setTimeLeft(prev => prev > 0 ? prev - 1 : 0);
     }, 1000);
