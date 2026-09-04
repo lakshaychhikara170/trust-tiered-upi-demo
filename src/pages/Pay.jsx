@@ -388,11 +388,12 @@ export default function Pay() {
                     </>
                   ) : aiScanStatus === 'warning' ? (
                     <>
-                      <div className="text-amber-400 font-bold flex justify-between"><span>&gt; RECIPIENT:</span> <span>UNKNOWN</span></div>
-                      <div className="text-gray-400 flex justify-between"><span>&gt; ACCT AGE:</span> <span>&lt; 24 HOURS</span></div>
-                      <div className="text-red-400 flex justify-between"><span>&gt; HISTORY:</span> <span>UNVERIFIED</span></div>
+                      <div className="text-amber-400 font-bold flex justify-between"><span>&gt; RECIPIENT:</span> <span>NEW / UNKNOWN</span></div>
+                      <div className="text-gray-400 flex justify-between"><span>&gt; CRIMINAL RECORD:</span> <span className="text-emerald-400">NONE FOUND</span></div>
+                      <div className="text-gray-400 flex justify-between"><span>&gt; TRUST HISTORY:</span> <span>NO PRIOR TXNS</span></div>
+                      <div className="text-gray-400 flex justify-between"><span>&gt; RISK SCORE:</span> <span className="text-amber-400">MODERATE</span></div>
                       <div className="mt-3 text-center text-[10px] font-bold text-amber-500 bg-amber-950/40 border border-amber-900/30 p-1.5 rounded">
-                        HOLD RULES ACTIVATED
+                        THRESHOLD HOLD IF ABOVE LIMIT
                       </div>
                     </>
                   ) : (

@@ -7,11 +7,12 @@ import { ArrowLeft, AlertTriangle, Clock, ShieldAlert, CheckCircle2 } from 'luci
 export default function HeldPayment() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { transactions, updateTransactionStatus, setBalance, addToTrustHistory } = useAppContext();
+  const { transactions, updateTransactionStatus, setBalance, addToTrustHistory, addHoldReason } = useAppContext();
   
   const txn = transactions.find(t => t.id === id);
   const [showReportForm, setShowReportForm] = useState(false);
   const [reportReason, setReportReason] = useState('');
+  const [holdNote, setHoldNote] = useState('');
   const [isReported, setIsReported] = useState(false);
 
   // Time remaining mock logic (starts at 24:00:00)
@@ -51,6 +52,12 @@ export default function HeldPayment() {
 
   const submitReport = (e) => {
     e.preventDefault();
+    // Save the user's reason to the transaction — visible to admin reviewer
+    if (holdNote.trim()) {
+      addHoldReason(id, holdNote.trim());
+    } else if (reportReason) {
+      addHoldReason(id, reportReason);
+    }
     updateTransactionStatus(id, 'Under Review');
     setIsReported(true);
   };
@@ -197,6 +204,18 @@ export default function HeldPayment() {
               <option value="Suspected scam">Suspected scam / impersonation</option>
               <option value="Wrong recipient">Wrong recipient entered</option>
             </select>
+
+            {/* Reason for hold — shown to bank admin reviewer */}
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Additional details <span className="text-gray-400 font-normal">(visible to bank reviewer)</span>
+            </label>
+            <textarea
+              value={holdNote}
+              onChange={(e) => setHoldNote(e.target.value)}
+              placeholder="Describe what happened, e.g. 'Received a call from someone claiming to be my bank asking me to send money urgently...'"
+              rows={3}
+              className="w-full p-3 border border-gray-300 rounded-xl mb-4 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500 text-sm resize-none"
+            />
             
             <div className="flex gap-3">
               <button 

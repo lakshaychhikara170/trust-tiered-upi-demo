@@ -181,6 +181,14 @@ export const AppProvider = ({ children }) => {
     return true;
   };
 
+  // Add or update a user-written reason for holding / disputing a payment
+  // This reason is visible to the admin reviewer in the Bank Security Portal
+  const addHoldReason = (id, reason) => {
+    setTransactions(prev =>
+      prev.map(t => t.id === id ? { ...t, holdReason: reason } : t)
+    );
+  };
+
   const value = {
     currentUser,
     loading,
@@ -196,6 +204,7 @@ export const AppProvider = ({ children }) => {
     addTransaction,
     updateTransactionStatus,
     disputeTransaction,
+    addHoldReason,
     merchants,
     trustHistory,
     addToTrustHistory,

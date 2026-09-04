@@ -100,6 +100,12 @@ export default function Admin() {
               <div><span className="text-slate-500">Recipient UPI:</span> <span className="font-medium text-slate-800">{selectedTxn.upiId}</span></div>
               <div><span className="text-slate-500">Status:</span> <span className="text-red-600 font-medium">Under Review</span></div>
             </div>
+            {selectedTxn.holdReason && (
+              <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <div className="text-xs font-bold text-amber-700 uppercase tracking-wide mb-1">User's Reason for Hold</div>
+                <p className="text-sm text-amber-900">{selectedTxn.holdReason}</p>
+              </div>
+            )}
           </div>
 
           <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
