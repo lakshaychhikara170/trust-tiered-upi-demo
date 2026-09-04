@@ -219,28 +219,15 @@ export default function Home() {
                 <div className={`font-bold text-sm ${getStatusColor(txn.status)}`}>
                   - ₹{txn.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
-                {txn.status === 'Completed' ? (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      disputeTransaction(txn.id);
-                      showToast('Payment put on safety hold! Funds frozen.');
-                      navigate(`/held/${txn.id}`);
-                    }}
-                    className="text-[11px] bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 px-2 py-0.5 rounded-md font-bold transition-all flex items-center gap-1 cursor-pointer shadow-sm"
-                    title="Freeze payment and put on 24h safety hold"
-                  >
-                    <AlertTriangle className="w-3 h-3 text-amber-600" /> Hold
-                  </button>
-                ) : (
-                  <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold flex items-center gap-1 ${
-                    txn.status === 'Held' ? 'bg-amber-100 text-amber-800' :
-                    txn.status === 'Under Review' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-500'
-                  }`}>
-                    {txn.status === 'Held' ? <Clock className="w-3 h-3" /> : <ShieldAlert className="w-3 h-3" />}
-                    {txn.status}
-                  </span>
-                )}
+                <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold flex items-center gap-1 ${
+                  txn.status === 'Completed' ? 'bg-emerald-50 text-emerald-700' :
+                  txn.status === 'Held' ? 'bg-amber-100 text-amber-800' :
+                  txn.status === 'Under Review' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-500'
+                }`}>
+                  {txn.status === 'Held' ? <Clock className="w-3 h-3" /> : 
+                   txn.status === 'Under Review' ? <ShieldAlert className="w-3 h-3" /> : null}
+                  {txn.status}
+                </span>
               </div>
             </div>
           ))}
