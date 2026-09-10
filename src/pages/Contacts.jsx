@@ -25,44 +25,44 @@ export default function Contacts() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-white">
+    <div className="flex flex-col h-full bg-[#07080f] text-white">
       {/* Header */}
-      <div className="flex items-center p-4 bg-white sticky top-0 z-10 border-b border-gray-100 shadow-sm">
-        <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-gray-900 rounded-full cursor-pointer hover:bg-gray-100">
+      <div className="flex items-center p-4 bg-[#07080f]/90 backdrop-blur-md sticky top-0 z-10 border-b border-white/[0.08]">
+        <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-slate-400 hover:text-white rounded-full cursor-pointer hover:bg-white/[0.06] transition-colors">
           <ArrowLeft className="w-6 h-6" />
         </button>
-        <h1 className="text-lg font-bold text-gray-900 ml-2">Select Contact</h1>
+        <h1 className="text-lg font-bold text-white ml-2">Select Contact</h1>
       </div>
 
-      <div className="p-4 bg-gray-50 border-b border-gray-100">
-        <div className="flex items-center gap-2 bg-white border border-gray-200 p-3.5 rounded-2xl text-gray-500 shadow-sm">
-          <Search className="w-5 h-5" />
+      <div className="p-4 bg-[#07080f] border-b border-white/[0.06]">
+        <div className="flex items-center gap-3 bg-white/[0.05] border border-white/10 p-3.5 rounded-2xl text-slate-400">
+          <Search className="w-5 h-5 text-violet-400" />
           <input 
             type="text" 
             placeholder="Search name or number"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="bg-transparent border-none outline-none flex-1 text-gray-900 placeholder-gray-400 font-medium text-sm"
+            className="bg-transparent border-none outline-none flex-1 text-white placeholder-slate-500 font-medium text-sm"
           />
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto">
         <div className="px-5 py-4">
-          <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">All Contacts</h2>
-          <div className="space-y-4">
+          <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">All Contacts</h2>
+          <div className="space-y-3">
             {filtered.map((contact, idx) => (
               <div 
                 key={contact.id} 
-                className="flex items-center gap-4 cursor-pointer hover:bg-gray-50 p-2 -mx-2 rounded-xl transition-all"
+                className="flex items-center gap-4 cursor-pointer bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.07] p-3.5 rounded-2xl transition-all"
                 onClick={() => navigate('/pay', { state: { scannedRecipient: contact.name } })}
               >
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm ${getContactColors(idx)}`}>
+                <div className={`w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-base shadow-md ${getContactColors(idx)}`}>
                   {getInitials(contact.name)}
                 </div>
-                <div className="flex-1 border-b border-gray-50 pb-2">
-                  <div className="font-bold text-gray-900">{contact.name}</div>
-                  <div className="text-xs text-gray-500 font-medium mt-0.5">{contact.upiId}</div>
+                <div className="flex-1">
+                  <div className="font-bold text-white text-sm">{contact.name}</div>
+                  <div className="text-xs text-slate-400 font-medium mt-0.5">{contact.upiId}</div>
                 </div>
               </div>
             ))}

@@ -8,28 +8,28 @@ export default function Settings() {
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      <div className="bg-white p-4 flex items-center gap-4 shadow-sm">
-        <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full">
+    <div className="flex flex-col h-full bg-[#07080f] text-white overflow-y-auto">
+      <div className="bg-[#07080f]/90 backdrop-blur-md p-4 flex items-center gap-4 border-b border-white/[0.08] sticky top-0 z-10">
+        <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-slate-400 hover:text-white hover:bg-white/[0.06] rounded-full transition-colors">
           <ArrowLeft className="w-6 h-6" />
         </button>
-        <h1 className="text-lg font-bold text-gray-800">Security Settings</h1>
+        <h1 className="text-lg font-bold text-white">Security Settings</h1>
       </div>
 
       <div className="p-6">
-        <div className="bg-indigo-50 text-indigo-800 p-4 rounded-xl flex gap-3 mb-8">
-          <Shield className="w-6 h-6 shrink-0 mt-0.5 text-indigo-600" />
-          <p className="text-sm">
+        <div className="bg-violet-500/10 border border-violet-500/20 text-violet-300 p-4 rounded-2xl flex gap-3 mb-8">
+          <Shield className="w-6 h-6 shrink-0 mt-0.5 text-violet-400" />
+          <p className="text-xs leading-relaxed">
             Trust-Tiered protection holds payments to unknown recipients that exceed your personal threshold, giving you time to cancel scams.
           </p>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <h2 className="font-bold text-gray-800 mb-1">Freeze Threshold</h2>
-          <p className="text-sm text-gray-500 mb-6">Any payment to a new contact above this amount will be held for 24 hours.</p>
+        <div className="bg-white/[0.04] backdrop-blur-xl p-6 rounded-3xl border border-white/[0.08]">
+          <h2 className="font-bold text-white mb-1 text-base">Freeze Threshold</h2>
+          <p className="text-xs text-slate-400 mb-6">Any payment to a new contact above this amount will be held for 24 hours.</p>
 
           <div className="text-center mb-6">
-            <span className="text-4xl font-bold text-indigo-600">₹{threshold.toLocaleString('en-IN')}</span>
+            <span className="text-5xl font-black text-violet-400 tracking-tight">₹{threshold.toLocaleString('en-IN')}</span>
           </div>
 
           <input 
@@ -39,10 +39,10 @@ export default function Settings() {
             step="500"
             value={threshold}
             onChange={(e) => setThreshold(Number(e.target.value))}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600 mb-4"
+            className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-violet-500 mb-4"
           />
           
-          <div className="flex justify-between text-xs text-gray-400 font-medium px-1">
+          <div className="flex justify-between text-xs text-slate-500 font-medium px-1">
             <span>₹1,000</span>
             <span>₹10,000</span>
           </div>

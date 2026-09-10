@@ -70,7 +70,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="flex flex-col min-h-full bg-[#07080f] pb-24 relative overflow-y-auto hide-scrollbar">
+    <div className="flex flex-col h-full bg-[#07080f] pb-24 relative overflow-y-auto scrollbar-hide">
 
       {/* Toast Notification */}
       {toastMessage && (

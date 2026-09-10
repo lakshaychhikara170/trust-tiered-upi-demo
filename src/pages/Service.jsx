@@ -24,52 +24,53 @@ export default function Service() {
   const Icon = details.icon;
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col h-full bg-[#07080f] text-white">
       {/* Header */}
-      <div className="flex items-center p-4 bg-white border-b border-gray-100 shadow-sm sticky top-0 z-10">
-        <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-gray-900 rounded-full cursor-pointer hover:bg-gray-100">
+      <div className="flex items-center p-4 bg-[#07080f]/90 backdrop-blur-md border-b border-white/[0.08] sticky top-0 z-10">
+        <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-slate-400 hover:text-white rounded-full cursor-pointer hover:bg-white/[0.06] transition-colors">
           <ArrowLeft className="w-6 h-6" />
         </button>
-        <h1 className="text-lg font-bold text-gray-900 ml-2">{details.title}</h1>
+        <h1 className="text-lg font-bold text-white ml-2">{details.title}</h1>
       </div>
 
       <div className="flex-1 overflow-y-auto p-5">
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 mb-6 flex flex-col items-center text-center">
-          <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mb-4">
-            <Icon className="w-10 h-10 text-indigo-600 stroke-[1.5]" />
+        <div className="bg-white/[0.04] backdrop-blur-xl rounded-3xl p-6 border border-white/[0.08] mb-6 flex flex-col items-center text-center">
+          <div className="w-20 h-20 bg-gradient-to-br from-violet-500/20 to-indigo-500/20 border border-violet-500/30 rounded-full flex items-center justify-center mb-4 shadow-[0_0_25px_rgba(139,92,246,0.2)]">
+            <Icon className="w-10 h-10 text-violet-400 stroke-[1.5]" />
           </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-1">{details.title}</h2>
-          <p className="text-sm text-gray-500 mb-6">Fast, secure, and instant.</p>
+          <h2 className="text-xl font-bold text-white mb-1">{details.title}</h2>
+          <p className="text-xs text-slate-400 mb-6">Fast, secure, and instant.</p>
           
           <div className="w-full text-left">
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">{details.label}</label>
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">{details.label}</label>
             <input 
               type="text" 
               value={inputVal}
               onChange={(e) => setInputVal(e.target.value)}
               placeholder={details.placeholder}
-              className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 text-gray-900 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none focus:border-indigo-500 transition-all"
+              className="w-full bg-white/[0.05] border border-white/10 rounded-2xl p-4 text-white font-medium focus:ring-2 focus:ring-violet-500/50 focus:outline-none placeholder-slate-600 transition-all text-sm"
             />
           </div>
         </div>
 
         {/* Demo Alert */}
-        <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl flex gap-3 text-blue-800">
-          <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-          <div className="text-sm">
-            <span className="font-bold">Hackathon Demo Notice:</span> This is a mock screen for {details.title}. In a real application, this would connect to a biller API (like BBPS).
+        <div className="bg-violet-500/10 border border-violet-500/20 p-4 rounded-2xl flex gap-3 text-violet-300">
+          <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-violet-400" />
+          <div className="text-xs leading-relaxed">
+            <span className="font-bold text-white">Hackathon Demo Notice:</span> This is a mock screen for {details.title}. In a real application, this would connect to a biller API (like BBPS).
           </div>
         </div>
       </div>
 
-      <div className="p-5 bg-white border-t border-gray-100">
-        <div className="flex justify-between items-center mb-4 text-sm">
-          <span className="text-gray-500 font-medium">Available Balance</span>
-          <span className="font-bold text-gray-900">₹{balance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-        </div>
+      <div className="p-5 border-t border-white/[0.08] bg-[#07080f]">
         <button 
-          className="w-full py-4 bg-indigo-600 text-white font-bold rounded-2xl shadow-lg shadow-indigo-200 disabled:opacity-50 disabled:shadow-none transition-all active:scale-95"
+          onClick={() => {
+            if (!inputVal) return alert('Please enter required details');
+            alert(`Demo: ${details.title} initiated for ${inputVal}`);
+            navigate('/');
+          }}
           disabled={!inputVal}
+          className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-4 rounded-2xl shadow-lg shadow-violet-500/25 active:scale-[0.98] transition-all"
         >
           {details.btn}
         </button>
