@@ -28,8 +28,14 @@ function ProtectedRoute({ children }) {
 }
 
 export default function App() {
+  const { theme } = useAppContext();
   return (
-    <div className="max-w-md mx-auto bg-[#07080f] h-screen overflow-hidden shadow-2xl relative" style={{boxShadow: '0 0 0 1px rgba(139,92,246,0.15), 0 25px 80px rgba(0,0,0,0.8)'}}>
+    <div 
+      className={`max-w-md mx-auto h-screen overflow-hidden relative transition-colors duration-300 ${
+        theme === 'light' ? 'bg-slate-50 text-slate-900' : 'bg-[#07080f] text-white'
+      }`} 
+      style={{boxShadow: theme === 'light' ? '0 0 0 1px rgba(0,0,0,0.1), 0 20px 60px rgba(0,0,0,0.12)' : '0 0 0 1px rgba(139,92,246,0.15), 0 25px 80px rgba(0,0,0,0.8)'}}
+    >
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

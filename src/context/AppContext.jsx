@@ -13,6 +13,18 @@ export const AppProvider = ({ children }) => {
   const [balance, setBalance] = useState(50000);
   const [threshold, setThreshold] = useState(3000);
   
+  // Theme state ('dark' | 'light')
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('app_theme') || 'dark';
+  });
+
+  const toggleTheme = () => {
+    setTheme(prev => {
+      const next = prev === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('app_theme', next);
+      return next;
+    });
+  };
   // For the demo, transactions and contacts are persisted in localStorage per browser session
   const [transactions, setTransactions] = useState(() => {
     try {
@@ -210,6 +222,9 @@ export const AppProvider = ({ children }) => {
     setBalance,
     threshold,
     setThreshold,
+    theme,
+    setTheme,
+    toggleTheme,
     transactions,
     addTransaction,
     updateTransactionStatus,
