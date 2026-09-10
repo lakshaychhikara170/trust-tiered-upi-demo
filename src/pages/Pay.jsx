@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { isScamRecipient } from '../utils/mockData';
-import { ArrowLeft, MoreHorizontal, Search, Scan as ScanIcon, Plus, Copy, CheckCircle2, FileText, Share2, Building2, ChevronDown, ShieldCheck, Activity, AlertCircle, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, Search, Scan as ScanIcon, Copy, CheckCircle2, FileText, Share2, Building2, ChevronDown, ShieldCheck, Activity, AlertCircle, ShieldAlert } from 'lucide-react';
 
 export default function Pay() {
   const { merchants, trustHistory, threshold, balance, setBalance, addTransaction, addToTrustHistory, disputeTransaction, currentUser, setUpiPin, verifyUpiPin } = useAppContext();
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const [recipientInput, setRecipientInput] = useState('');
   const [amount, setAmount] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
@@ -29,7 +29,7 @@ export default function Pay() {
   const [pinError, setPinError] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [pin, setPin] = useState(['', '', '', '']);
-  const [aiScanStatus, setAiScanStatus] = useState('idle'); // idle, scanning, safe, warning
+  const [aiScanStatus, setAiScanStatus] = useState('idle');
   const [isAiExpanded, setIsAiExpanded] = useState(false);
 
   // Check risk dynamically based on input
@@ -55,10 +55,9 @@ export default function Pay() {
       setIsAiExpanded(false);
     }
   }, [recipientInput, isHighRisk]);
-  
+
   // Processing Animation State
   const [showProcessingScreen, setShowProcessingScreen] = useState(false);
-
   const allContacts = [...merchants, ...trustHistory];
 
   const handlePayClick = (e) => {
@@ -67,8 +66,6 @@ export default function Pay() {
     if (isNaN(numAmount) || numAmount <= 0) return alert('Invalid amount');
     if (numAmount > balance) return alert('Insufficient balance');
     if (!recipientInput) return alert('Please enter or select a recipient');
-    
-    // Open PIN Modal instead of paying immediately
     setPinInput('');
     setPinError('');
     setShowPinModal(true);
@@ -161,147 +158,160 @@ export default function Pay() {
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
 
-  const getContactColors = (index) => {
-    const colors = [
-      'bg-green-500', 'bg-blue-500', 'bg-orange-500', 'bg-purple-500', 'bg-pink-500'
+  const getContactGradient = (index) => {
+    const gradients = [
+      'bg-gradient-to-br from-emerald-400 to-teal-600',
+      'bg-gradient-to-br from-violet-400 to-indigo-600',
+      'bg-gradient-to-br from-orange-400 to-rose-500',
+      'bg-gradient-to-br from-sky-400 to-blue-600',
+      'bg-gradient-to-br from-pink-400 to-fuchsia-600',
     ];
-    return colors[index % colors.length];
+    return gradients[index % gradients.length];
   };
 
+  // ─── PROCESSING SCREEN ────────────────────────────────────────────────────
   if (showProcessingScreen) {
     let recipient = allContacts.find(c => c.upiId === recipientInput || c.name === recipientInput);
     let isMerchant = recipient?.verified || false;
     let finalUpiId = recipient ? recipient.upiId : recipientInput;
     const isHighRisk = !isMerchant && !trustHistory.some(t => t.upiId === finalUpiId);
     return (
-      <div className={`flex flex-col h-screen justify-center items-center relative overflow-hidden ${isHighRisk ? 'bg-slate-900' : 'bg-indigo-600'}`}>
-        {/* Pulsing background effects */}
-        <div className={`absolute w-[500px] h-[500px] rounded-full blur-3xl opacity-20 animate-pulse ${isHighRisk ? 'bg-emerald-500' : 'bg-white'}`}></div>
-        
-        <div className="relative z-10 flex flex-col items-center">
-          <div className="mb-8 relative">
-            <div className={`w-24 h-24 border-[6px] border-t-transparent rounded-full animate-spin ${isHighRisk ? 'border-emerald-500/30 border-t-emerald-500' : 'border-indigo-400/30 border-t-white'}`}></div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              {isHighRisk ? <ShieldCheck className="w-10 h-10 text-emerald-500 animate-pulse" /> : <div className="w-8 h-8 bg-white rounded-full"></div>}
+      <div className="flex flex-col h-screen bg-[#07080f] justify-center items-center relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-violet-600/10 blur-3xl animate-pulse" />
+        <div className="relative z-10 flex flex-col items-center gap-8 px-8">
+          {/* Dual-spin spinner */}
+          <div className="relative w-28 h-28 flex items-center justify-center">
+            <div
+              className="absolute inset-0 rounded-full border-[3px] border-violet-500/20 border-t-violet-500 animate-spin"
+              style={{ animationDuration: '2s' }}
+            />
+            <div
+              className="absolute inset-3 rounded-full border-[3px] border-indigo-400/20 border-t-indigo-400 animate-spin"
+              style={{ animationDuration: '1s', animationDirection: 'reverse' }}
+            />
+            <div className="relative z-10">
+              {isHighRisk
+                ? <ShieldCheck className="w-9 h-9 text-emerald-400 animate-pulse" />
+                : <Activity className="w-9 h-9 text-violet-400 animate-pulse" />}
             </div>
           </div>
-          
-          <h2 className="text-2xl font-bold text-white mb-2">
-            {isHighRisk ? 'AI Security Scan' : 'Processing Payment'}
-          </h2>
-          <p className={`font-medium text-center px-8 ${isHighRisk ? 'text-slate-400 font-mono' : 'text-indigo-200'}`}>
-            {isHighRisk ? (
-              <>
-                <span className="block mb-1 text-emerald-400">&gt; Scanning recipient profile...</span>
-                <span className="block mb-1 text-emerald-400 animate-pulse" style={{ animationDelay: '1s' }}>&gt; Checking global registries...</span>
-              </>
-            ) : (
-              <>
-                Connecting securely to your bank...<br />
-                Please do not close this screen.
-              </>
-            )}
-          </p>
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-white mb-3 tracking-tight">
+              {isHighRisk ? 'AI Security Scan' : 'Processing Payment'}
+            </h2>
+            <div className="font-mono text-sm space-y-1.5 text-left">
+              {isHighRisk ? (
+                <>
+                  <p className="text-emerald-400">&gt; Scanning recipient profile...</p>
+                  <p className="text-emerald-400 animate-pulse" style={{ animationDelay: '0.8s' }}>&gt; Checking global fraud registries...</p>
+                  <p className="text-slate-500 animate-pulse" style={{ animationDelay: '1.5s' }}>&gt; Cross-referencing trust network...</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-violet-400">&gt; Connecting to secure gateway...</p>
+                  <p className="text-violet-400 animate-pulse" style={{ animationDelay: '0.8s' }}>&gt; Encrypting transaction data...</p>
+                  <p className="text-slate-500 animate-pulse" style={{ animationDelay: '1.5s' }}>&gt; Awaiting bank confirmation...</p>
+                </>
+              )}
+            </div>
+          </div>
+          <p className="text-xs text-slate-600 font-medium tracking-widest">PLEASE DO NOT CLOSE THIS SCREEN</p>
         </div>
       </div>
     );
   }
 
+  // ─── SUCCESS SCREEN ───────────────────────────────────────────────────────
   if (isSuccess && successData) {
     return (
-      <div className="flex flex-col min-h-screen bg-white pb-6 relative overflow-hidden">
-        {/* Confetti mock elements */}
-        <div className="absolute top-10 left-10 w-2 h-2 bg-purple-400 rotate-45"></div>
-        <div className="absolute top-20 right-20 w-3 h-3 bg-green-400 rounded-full"></div>
-        <div className="absolute top-40 left-24 w-2 h-2 bg-orange-400 rotate-12"></div>
-        <div className="absolute top-16 right-10 w-2 h-2 bg-blue-400 rotate-45"></div>
-        
-        {/* Status Area */}
-        <div className="flex flex-col items-center pt-20 px-6 mb-8">
-          <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-6">
-            <div className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-emerald-200">
-              <CheckCircle2 className="w-10 h-10 text-white stroke-[2.5]" />
+      <div className="flex flex-col min-h-screen bg-[#07080f] pb-6 relative overflow-hidden">
+        <div className="absolute top-24 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full bg-emerald-500/10 blur-3xl" />
+        <div className="flex flex-col items-center pt-16 px-5 relative z-10">
+          {/* Big emerald checkmark */}
+          <div className="mb-6 relative">
+            <div className="absolute inset-0 rounded-full bg-emerald-400/20 blur-2xl scale-150 animate-pulse" />
+            <div className="relative w-24 h-24 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center shadow-[0_0_40px_rgba(52,211,153,0.3)]">
+              <CheckCircle2 className="w-12 h-12 text-emerald-400 stroke-[1.5]" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Payment Successful!</h1>
-          <div className="text-4xl font-bold text-gray-900 mb-8">
-            ₹{successData.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          <h1 className="text-xl font-bold text-slate-400 mb-2 tracking-wide">Payment Successful</h1>
+          <div className="text-5xl font-black text-white mb-8 tracking-tight flex items-baseline gap-1">
+            <span className="text-violet-400 text-4xl">&#8377;</span>
+            {successData.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
-          
-          <div className="text-gray-500 text-sm mb-3">Paid to</div>
-          
-          <div className="w-full border border-gray-100 rounded-2xl p-4 flex items-center gap-4 shadow-sm shadow-gray-50 mb-8">
-            <div className="w-12 h-12 bg-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+          <div className="text-slate-600 text-xs uppercase tracking-widest mb-3 font-semibold">Paid to</div>
+          {/* Recipient card */}
+          <div className="w-full bg-white/[0.04] border border-white/[0.08] rounded-2xl p-4 flex items-center gap-4 mb-8 backdrop-blur-sm">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white font-bold text-lg shadow-lg flex-shrink-0">
               {getInitials(successData.recipient)}
             </div>
             <div>
-              <div className="font-bold text-gray-900">{successData.recipient}</div>
-              <div className="text-sm text-gray-500 flex items-center gap-1">
-                {successData.upiId} 
-                <div className="w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center ml-1">
-                  <CheckCircle2 className="w-3 h-3 text-white" />
+              <div className="font-bold text-white text-base">{successData.recipient}</div>
+              <div className="text-sm text-slate-400 flex items-center gap-1.5 mt-0.5">
+                {successData.upiId}
+                <div className="w-4 h-4 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center flex-shrink-0">
+                  <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400" />
                 </div>
               </div>
             </div>
           </div>
-
-          <div className="w-full text-sm space-y-4 text-gray-600 border-t border-gray-100 pt-6 mb-8">
+          {/* Receipt */}
+          <div className="w-full bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5 mb-6 space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-gray-400">Transaction ID</span>
-              <div className="flex items-center gap-2 font-medium text-gray-900">
-                T{Date.now().toString().slice(0,10)} <Copy className="w-4 h-4 text-gray-400" />
+              <span className="text-slate-500 text-sm">Transaction ID</span>
+              <div className="flex items-center gap-2 text-white font-mono text-sm font-medium">
+                T{Date.now().toString().slice(0, 10)}
+                <Copy className="w-3.5 h-3.5 text-slate-500 cursor-pointer hover:text-violet-400 transition-colors" />
               </div>
             </div>
+            <div className="h-px bg-white/5" />
             <div className="flex justify-between items-center">
-              <span className="text-gray-400">Time</span>
-              <span className="font-medium text-gray-900">
-                {new Date(successData.date).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit' })}
+              <span className="text-slate-500 text-sm">Time</span>
+              <span className="text-white text-sm font-medium">
+                {new Date(successData.date).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
+            <div className="h-px bg-white/5" />
             <div className="flex justify-between items-center">
-              <span className="text-gray-400">From</span>
-              <div className="flex items-center gap-2 font-medium text-gray-900">
-                SBI •••• 4567 <Copy className="w-4 h-4 text-gray-400" />
+              <span className="text-slate-500 text-sm">From</span>
+              <div className="flex items-center gap-2 text-white text-sm font-medium">
+                SBI &bull;&bull;&bull;&bull; 4567
+                <Copy className="w-3.5 h-3.5 text-slate-500 cursor-pointer hover:text-violet-400 transition-colors" />
               </div>
             </div>
           </div>
-
-          {/* 24-Hour Safety Hold Action */}
-          <div className="w-full bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6 text-left">
-            <div className="flex items-center gap-2 text-amber-900 font-bold text-sm mb-1">
-              <ShieldAlert className="w-4 h-4 text-amber-600" />
+          {/* 24-Hour Safety Hold */}
+          <div className="w-full bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 mb-5">
+            <div className="flex items-center gap-2 text-amber-400 font-bold text-sm mb-1.5">
+              <ShieldAlert className="w-4 h-4" />
               24-Hour UPI Safety Window Active
             </div>
-            <p className="text-xs text-amber-700 mb-3 leading-relaxed">
+            <p className="text-xs text-amber-700/80 mb-4 leading-relaxed">
               Suspect fraud, unauthorized transfer, or sent to the wrong person? You can put this payment on immediate hold.
             </p>
-            <button 
-              onClick={() => {
-                disputeTransaction(successData.id);
-                navigate(`/held/${successData.id}`);
-              }}
-              className="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            <button
+              onClick={() => { disputeTransaction(successData.id); navigate(`/held/${successData.id}`); }}
+              className="w-full py-2.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
             >
-              <AlertCircle className="w-4 h-4" /> Freeze & Put Payment on Hold
+              <AlertCircle className="w-3.5 h-3.5" /> Freeze &amp; Put Payment on Hold
             </button>
           </div>
-
-          <div className="flex gap-4 w-full mb-6">
-            <button onClick={() => navigate('/')} className="w-full py-3.5 bg-indigo-600 rounded-xl font-bold text-white shadow-md shadow-indigo-200 cursor-pointer">
-              Back to Dashboard
-            </button>
-          </div>
-
-          <div className="w-full bg-indigo-50 border border-indigo-100 rounded-2xl p-4 flex justify-between items-center">
+          <button
+            onClick={() => navigate('/')}
+            className="w-full py-4 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl font-black text-white text-base shadow-[0_8px_30px_rgba(139,92,246,0.4)] mb-5 cursor-pointer hover:shadow-[0_8px_40px_rgba(139,92,246,0.55)] transition-all active:scale-[0.98]"
+          >
+            Back to Dashboard
+          </button>
+          <div className="w-full bg-white/[0.03] border border-white/[0.07] rounded-2xl p-4 flex justify-between items-center">
             <div>
-              <div className="font-bold text-gray-900 text-sm mb-1">Invite your friends</div>
-              <div className="text-xs text-gray-500 mb-3 max-w-[140px]">Get ₹51 when they make their first payment!</div>
-              <button className="text-xs font-bold text-indigo-600 bg-white border border-indigo-200 py-1.5 px-4 rounded-lg shadow-sm">
+              <div className="font-bold text-white text-sm mb-1">Invite your friends</div>
+              <div className="text-xs text-slate-500 mb-3 max-w-[150px] leading-relaxed">Get &#8377;51 when they make their first payment!</div>
+              <button className="text-xs font-bold text-violet-400 bg-violet-500/10 border border-violet-500/20 py-1.5 px-4 rounded-lg hover:bg-violet-500/20 transition-colors">
                 Invite Now
               </button>
             </div>
-            <div className="w-20 h-20 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-400">
-              <Share2 className="w-8 h-8" />
+            <div className="w-16 h-16 bg-violet-500/10 border border-violet-500/20 rounded-2xl flex items-center justify-center text-violet-400">
+              <Share2 className="w-7 h-7" />
             </div>
           </div>
         </div>
@@ -309,100 +319,130 @@ export default function Pay() {
     );
   }
 
+  // ─── MAIN PAY SCREEN ──────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col h-screen bg-white">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 bg-white sticky top-0 z-10 shadow-sm">
-        <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-gray-900 rounded-full hover:bg-gray-100">
-          <ArrowLeft className="w-6 h-6" />
+    <div className="flex flex-col h-screen bg-[#07080f]">
+
+      {/* HEADER */}
+      <div className="flex items-center justify-between px-4 py-4 bg-[#07080f] sticky top-0 z-20 border-b border-white/[0.05]">
+        <button
+          onClick={() => navigate(-1)}
+          className="p-2 -ml-1 rounded-xl text-slate-400 hover:bg-white/5 hover:text-white transition-all active:scale-95"
+        >
+          <ArrowLeft className="w-5 h-5" />
         </button>
-        <h1 className="text-lg font-bold text-gray-900">Send Money</h1>
-        
-        {/* Expanding AI Tab */}
-        <div className="relative flex items-center justify-end w-10 h-10">
-          <div 
+        <h1 className="text-base font-bold text-white tracking-wide">Send Money</h1>
+
+        {/* AI SCANNER WIDGET */}
+        <div className="relative flex items-center justify-end" style={{ minWidth: 40, minHeight: 40 }}>
+          <div
             onClick={() => {
               if (aiScanStatus === 'warning' || aiScanStatus === 'safe') {
                 setIsAiExpanded(!isAiExpanded);
               }
             }}
-            className={`absolute top-0 right-0 z-50 overflow-hidden transition-all duration-300 ease-out origin-top-right ${
-              !isAiExpanded 
-                ? 'w-10 h-10 rounded-full bg-white flex items-center justify-center cursor-pointer shadow-sm hover:shadow-md hover:scale-110 active:scale-95' 
-                : 'w-64 rounded-xl bg-gray-900 shadow-2xl p-3 border border-gray-800 cursor-pointer hover:border-gray-700'
+            className={`absolute top-0 right-0 z-50 transition-all duration-300 ease-out origin-top-right cursor-pointer ${
+              !isAiExpanded ? 'w-10 h-10 rounded-full flex items-center justify-center' : 'w-72 rounded-2xl'
             }`}
           >
-            {/* Unexpanded / Icon State */}
+            {/* COLLAPSED ORB */}
             {!isAiExpanded && (
-              <div className="relative w-full h-full flex items-center justify-center rounded-full">
-                {/* Ping rings to make it feel alive */}
-                {isScam ? (
-                  <div className="absolute inset-0 bg-red-500 rounded-full animate-ping opacity-50"></div>
-                ) : aiScanStatus === 'warning' ? (
-                  <div className="absolute inset-0 bg-amber-400 rounded-full animate-ping opacity-30"></div>
-                ) : aiScanStatus === 'safe' ? (
-                  <div className="absolute inset-0 bg-emerald-400 rounded-full animate-ping opacity-30"></div>
-                ) : null}
-                
-                <div className={`relative z-10 w-full h-full flex items-center justify-center rounded-full transition-colors ${
-                  aiScanStatus === 'scanning' ? 'bg-indigo-100' : 
-                  isScam ? 'bg-red-100' :
-                  aiScanStatus === 'warning' ? 'bg-amber-100' : 
-                  aiScanStatus === 'safe' ? 'bg-emerald-100' : 'bg-gray-100'
-                }`}>
-                  {aiScanStatus === 'scanning' && <div className="absolute inset-0 border-[3px] border-t-indigo-600 border-transparent rounded-full animate-spin"></div>}
-                  
-                  {isScam ? <ShieldAlert className="w-5 h-5 text-red-600 animate-pulse" /> :
-                   aiScanStatus === 'warning' ? <ShieldCheck className="w-5 h-5 text-amber-600 animate-pulse" /> :
-                   aiScanStatus === 'safe' ? <ShieldCheck className="w-5 h-5 text-emerald-600" /> :
-                   <Activity className={`w-5 h-5 ${aiScanStatus === 'scanning' ? 'text-indigo-600 animate-pulse' : 'text-gray-400'}`} />}
+              <div className="relative w-10 h-10 flex items-center justify-center">
+                {/* IDLE ghost */}
+                {aiScanStatus === 'idle' && (
+                  <div className="absolute inset-0 rounded-full bg-white/5 border border-white/10" />
+                )}
+                {/* SCANNING: dual opposite-spin rings */}
+                {aiScanStatus === 'scanning' && (
+                  <>
+                    <div className="absolute inset-0 rounded-full border-2 border-violet-500/30 border-t-violet-500 animate-spin" style={{ animationDuration: '2s' }} />
+                    <div className="absolute inset-1.5 rounded-full border-2 border-indigo-400/20 border-t-indigo-400 animate-spin" style={{ animationDuration: '0.9s', animationDirection: 'reverse' }} />
+                  </>
+                )}
+                {/* SAFE: emerald ping */}
+                {aiScanStatus === 'safe' && !isScam && (
+                  <>
+                    <div className="absolute inset-0 rounded-full bg-emerald-400/10 border border-emerald-500/30 shadow-[0_0_15px_rgba(52,211,153,0.4)]" />
+                    <div className="absolute inset-0 rounded-full border border-emerald-400/40 animate-ping" />
+                  </>
+                )}
+                {/* WARNING: double amber ping */}
+                {aiScanStatus === 'warning' && !isScam && (
+                  <>
+                    <div className="absolute inset-0 rounded-full bg-amber-400/10 border border-amber-500/30 shadow-[0_0_20px_rgba(245,158,11,0.4)]" />
+                    <div className="absolute inset-0 rounded-full border border-amber-400/50 animate-ping" />
+                    <div className="absolute inset-0 rounded-full border border-amber-400/25 animate-ping" style={{ animationDelay: '0.4s' }} />
+                  </>
+                )}
+                {/* DANGER: triple red ping */}
+                {isScam && (
+                  <>
+                    <div className="absolute inset-0 rounded-full bg-red-500/15 border border-red-500/40 shadow-[0_0_30px_rgba(239,68,68,0.6)]" />
+                    <div className="absolute inset-0 rounded-full border border-red-500/60 animate-ping" style={{ animationDelay: '0s' }} />
+                    <div className="absolute inset-0 rounded-full border border-red-500/40 animate-ping" style={{ animationDelay: '0.3s' }} />
+                    <div className="absolute inset-0 rounded-full border border-red-500/20 animate-ping" style={{ animationDelay: '0.6s' }} />
+                  </>
+                )}
+                {/* Center icon */}
+                <div className="relative z-10">
+                  {isScam
+                    ? <ShieldAlert className="w-5 h-5 text-red-500 animate-pulse" />
+                    : aiScanStatus === 'warning'
+                      ? <ShieldCheck className="w-5 h-5 text-amber-400 animate-pulse" />
+                      : aiScanStatus === 'safe'
+                        ? <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                        : <Activity className={`w-5 h-5 ${aiScanStatus === 'scanning' ? 'text-violet-400 animate-pulse' : 'text-white/20'}`} />
+                  }
                 </div>
               </div>
             )}
 
-            {/* Expanded State (Rectangle Tab) */}
+            {/* EXPANDED PANEL */}
             {isAiExpanded && (
-              <div className="w-full flex flex-col animate-in fade-in zoom-in-95 duration-500 delay-150">
-                <div className="flex items-center justify-between mb-2 pb-2 border-b border-gray-800">
+              <div className="w-72 bg-[#0d1117] border border-gray-700/50 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] p-4">
+                <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-white/[0.06]">
                   <div className="flex items-center gap-2">
-                    <Activity className={`w-4 h-4 ${isScam ? 'text-red-500 animate-pulse' : aiScanStatus === 'warning' ? 'text-amber-500 animate-pulse' : 'text-emerald-500'}`} />
-                    <span className={`font-bold text-[11px] uppercase tracking-widest ${isScam ? 'text-red-400' : 'text-gray-300'}`}>
+                    <div className={`w-2 h-2 rounded-full flex-shrink-0 ${isScam ? 'bg-red-500 animate-pulse' : aiScanStatus === 'warning' ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'}`} />
+                    <span className={`font-bold text-[10px] uppercase tracking-[0.15em] ${isScam ? 'text-red-400' : aiScanStatus === 'warning' ? 'text-amber-400' : 'text-emerald-400'}`}>
                       {isScam ? 'FRAUD ALERT' : 'AI Trust Analysis'}
                     </span>
                   </div>
-                  <div className="w-5 h-5 rounded-full hover:bg-gray-800 flex items-center justify-center text-gray-500">
-                    &times;
-                  </div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setIsAiExpanded(false); }}
+                    className="w-6 h-6 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white text-xs transition-all flex-shrink-0"
+                  >
+                    &#x2715;
+                  </button>
                 </div>
-                
-                <div className="font-mono text-[10px] space-y-1.5 mt-1">
+                <div className="font-mono text-[11px] space-y-2">
                   {isScam ? (
                     <>
-                      <div className="text-red-400 font-bold flex justify-between"><span>&gt; RECIPIENT:</span> <span className="text-red-500 font-extrabold animate-pulse">SUSPECTED SCAMMER</span></div>
-                      <div className="text-gray-400 flex justify-between"><span>&gt; RISK SCORE:</span> <span className="text-red-400 font-bold">99.4% (CRITICAL)</span></div>
-                      <div className="text-gray-400 flex justify-between"><span>&gt; COMPLAINTS:</span> <span className="text-red-400">14 Active Flags</span></div>
-                      <div className="text-amber-400 font-bold flex justify-between"><span>&gt; AI VERDICT:</span> <span className="text-red-400 font-bold">DO NOT PAY</span></div>
-                      <div className="mt-2 text-center text-[10px] font-bold text-red-300 bg-red-950/70 border border-red-800/60 p-1.5 rounded animate-pulse">
-                        MANDATORY 24H SAFETY HOLD
+                      <div className="flex justify-between"><span className="text-slate-500">&gt; RECIPIENT:</span><span className="text-red-400 font-bold animate-pulse">SUSPECTED SCAMMER</span></div>
+                      <div className="flex justify-between"><span className="text-slate-500">&gt; RISK SCORE:</span><span className="text-red-400 font-bold">99.4% &#8212; CRITICAL</span></div>
+                      <div className="flex justify-between"><span className="text-slate-500">&gt; COMPLAINTS:</span><span className="text-red-400">14 Active Flags</span></div>
+                      <div className="flex justify-between"><span className="text-slate-500">&gt; AI VERDICT:</span><span className="text-red-500 font-extrabold">DO NOT PAY</span></div>
+                      <div className="mt-3 text-center text-[10px] font-bold text-red-300 bg-red-950/60 border border-red-800/50 py-2 px-3 rounded-xl animate-pulse tracking-wider">
+                        &#9888; MANDATORY 24H SAFETY HOLD
                       </div>
                     </>
                   ) : aiScanStatus === 'warning' ? (
                     <>
-                      <div className="text-amber-400 font-bold flex justify-between"><span>&gt; RECIPIENT:</span> <span>NEW / UNKNOWN</span></div>
-                      <div className="text-gray-400 flex justify-between"><span>&gt; CRIMINAL RECORD:</span> <span className="text-emerald-400">NONE FOUND</span></div>
-                      <div className="text-gray-400 flex justify-between"><span>&gt; TRUST HISTORY:</span> <span>NO PRIOR TXNS</span></div>
-                      <div className="text-gray-400 flex justify-between"><span>&gt; RISK SCORE:</span> <span className="text-amber-400">MODERATE</span></div>
-                      <div className="mt-3 text-center text-[10px] font-bold text-amber-500 bg-amber-950/40 border border-amber-900/30 p-1.5 rounded">
-                        THRESHOLD HOLD IF ABOVE LIMIT
+                      <div className="flex justify-between"><span className="text-slate-500">&gt; RECIPIENT:</span><span className="text-amber-400 font-bold">NEW / UNKNOWN</span></div>
+                      <div className="flex justify-between"><span className="text-slate-500">&gt; CRIMINAL RECORD:</span><span className="text-emerald-400">NONE FOUND</span></div>
+                      <div className="flex justify-between"><span className="text-slate-500">&gt; TRUST HISTORY:</span><span className="text-slate-300">NO PRIOR TXNS</span></div>
+                      <div className="flex justify-between"><span className="text-slate-500">&gt; RISK SCORE:</span><span className="text-amber-400 font-bold">MODERATE</span></div>
+                      <div className="mt-3 text-center text-[10px] font-bold text-amber-400 bg-amber-950/40 border border-amber-800/30 py-2 px-3 rounded-xl tracking-wider">
+                        &#9889; THRESHOLD HOLD IF ABOVE LIMIT
                       </div>
                     </>
                   ) : (
                     <>
-                      <div className="text-emerald-400 font-bold flex justify-between"><span>&gt; RECIPIENT:</span> <span>TRUSTED</span></div>
-                      <div className="text-gray-400 flex justify-between"><span>&gt; NETWORK:</span> <span>VERIFIED</span></div>
-                      <div className="text-gray-400 flex justify-between"><span>&gt; HISTORY:</span> <span>SECURE</span></div>
-                      <div className="mt-3 text-center text-[10px] font-bold text-emerald-500 bg-emerald-950/40 border border-emerald-900/30 p-1.5 rounded">
-                        CLEARED FOR TRANSFER
+                      <div className="flex justify-between"><span className="text-slate-500">&gt; RECIPIENT:</span><span className="text-emerald-400 font-bold">TRUSTED</span></div>
+                      <div className="flex justify-between"><span className="text-slate-500">&gt; NETWORK:</span><span className="text-emerald-400">VERIFIED</span></div>
+                      <div className="flex justify-between"><span className="text-slate-500">&gt; HISTORY:</span><span className="text-emerald-400">SECURE</span></div>
+                      <div className="flex justify-between"><span className="text-slate-500">&gt; RISK SCORE:</span><span className="text-emerald-400 font-bold">LOW</span></div>
+                      <div className="mt-3 text-center text-[10px] font-bold text-emerald-400 bg-emerald-950/40 border border-emerald-800/30 py-2 px-3 rounded-xl tracking-wider">
+                        &#10003; CLEARED FOR TRANSFER
                       </div>
                     </>
                   )}
@@ -413,38 +453,44 @@ export default function Pay() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto pb-24">
-        {/* Search */}
-        <div className="px-5 mb-6">
-          <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 p-3.5 rounded-2xl text-gray-500">
-            <Search className="w-5 h-5" />
-            <input 
-              type="text" 
+      {/* SCROLLABLE BODY */}
+      <div className="flex-1 overflow-y-auto pb-32 px-4 pt-5">
+
+        {/* SEARCH INPUT */}
+        <div className="mb-6">
+          <div className="flex items-center gap-3 bg-white/5 border border-white/10 backdrop-blur-sm rounded-2xl p-4">
+            <Search className="w-5 h-5 text-violet-400 flex-shrink-0" />
+            <input
+              type="text"
               placeholder="Enter UPI ID, Mobile or Name"
               value={recipientInput}
               onChange={(e) => setRecipientInput(e.target.value)}
-              className="bg-transparent border-none outline-none flex-1 text-gray-900 placeholder-gray-400 font-medium"
+              className="bg-transparent border-none outline-none flex-1 text-white placeholder-slate-500 font-medium text-sm"
             />
-            <ScanIcon className="w-5 h-5 text-gray-700" />
+            <ScanIcon className="w-5 h-5 text-slate-500 flex-shrink-0" />
           </div>
         </div>
 
-        {/* Contacts Horizontal List */}
+        {/* CONTACT BUBBLES */}
         {!recipientInput && (
-          <div className="px-5 mb-8">
+          <div className="mb-8">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="font-bold text-gray-900 text-sm">Contacts</h2>
-              <span className="text-xs font-semibold text-gray-500 cursor-pointer">View All</span>
+              <h2 className="font-bold text-white text-sm tracking-wide">Contacts</h2>
+              <span className="text-xs font-semibold text-violet-400 cursor-pointer hover:text-violet-300 transition-colors">View All</span>
             </div>
-            <div className="flex gap-6 overflow-x-auto pb-2 scrollbar-hide">
+            <div className="flex gap-5 overflow-x-auto pb-2 scrollbar-hide">
               {allContacts.map((contact, idx) => (
-                <div key={contact.id} className="flex flex-col items-center gap-2 min-w-max cursor-pointer" onClick={() => setRecipientInput(contact.upiId)}>
-                  <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-xl ${getContactColors(idx)}`}>
+                <div
+                  key={contact.id}
+                  className="flex flex-col items-center gap-2 min-w-max cursor-pointer group"
+                  onClick={() => setRecipientInput(contact.upiId)}
+                >
+                  <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-lg ${getContactGradient(idx)} shadow-lg group-hover:scale-105 transition-transform`}>
                     {getInitials(contact.name)}
                   </div>
                   <div className="text-center">
-                    <div className="text-xs font-bold text-gray-900">{contact.name.split(' ')[0]}</div>
-                    <div className="text-[10px] text-gray-500">@{contact.upiId.split('@')[0]}</div>
+                    <div className="text-xs font-bold text-white">{contact.name.split(' ')[0]}</div>
+                    <div className="text-[10px] text-slate-500">@{contact.upiId.split('@')[0]}</div>
                   </div>
                 </div>
               ))}
@@ -452,107 +498,116 @@ export default function Pay() {
           </div>
         )}
 
-        <div className="px-5">
-          <div className="text-sm text-gray-500 font-medium mb-4">Enter Amount</div>
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center text-5xl font-bold text-gray-900 tracking-tight">
-              <span className="text-4xl text-gray-400 mr-1">₹</span>
-              <input 
+        {/* AMOUNT INPUT */}
+        <div className="mb-8">
+          <div className="text-xs text-slate-500 uppercase tracking-widest font-semibold mb-5">Enter Amount</div>
+          <div className="flex flex-col items-center mb-2">
+            <div className="flex items-center justify-center">
+              <span className="text-4xl font-black text-violet-400 mr-2 leading-none">&#8377;</span>
+              <input
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="0"
-                className="w-full bg-transparent border-none outline-none"
-                style={{ width: amount ? `${Math.max(1, amount.length) * 0.7}em` : '2em' }}
+                className="text-6xl font-black text-white bg-transparent border-none outline-none text-center leading-none placeholder-slate-700"
+                style={{ width: amount ? `${Math.max(1, amount.length) * 0.75}em` : '2em', minWidth: '2em', maxWidth: '100%' }}
               />
             </div>
-            <button className="flex items-center gap-1 text-sm font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg">
-              <FileText className="w-4 h-4" /> Add Note
-            </button>
+            <div className={`h-0.5 mt-3 rounded-full transition-all duration-500 ${amount ? 'w-32 bg-gradient-to-r from-violet-500 to-indigo-500' : 'w-16 bg-white/10'}`} />
           </div>
-
-          <div className="flex gap-3 mb-10 overflow-x-auto pb-2 scrollbar-hide">
+          {/* Quick-amount chips */}
+          <div className="flex gap-2.5 mt-6 overflow-x-auto pb-1 scrollbar-hide justify-center">
             {['100', '500', '1000', '2000'].map(val => (
-              <button 
+              <button
                 key={val}
                 onClick={() => setAmount(val)}
-                className="min-w-max px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-semibold text-gray-700 shadow-sm"
+                className={`min-w-max px-4 py-2 rounded-full text-sm font-bold border transition-all active:scale-95 cursor-pointer ${
+                  amount === val
+                    ? 'bg-violet-500/20 border-violet-500/50 text-violet-300'
+                    : 'bg-white/5 border-white/10 text-slate-400 hover:border-white/20 hover:text-slate-300'
+                }`}
               >
-                + ₹{val}
+                + &#8377;{val}
               </button>
             ))}
           </div>
+        </div>
 
-          <div className="border border-gray-100 rounded-2xl p-4 flex items-center justify-between bg-white shadow-[0_2px_10px_rgba(0,0,0,0.02)] mb-8">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center">
-                <Building2 className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <div className="text-xs text-gray-500 mb-0.5">From</div>
-                <div className="text-sm font-bold text-gray-900">State Bank of India •••• 4567</div>
-                <div className="text-xs font-semibold text-emerald-600 mt-0.5 cursor-pointer">Check Balance</div>
-              </div>
+        {/* BANK CARD */}
+        <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-4 flex items-center justify-between mb-6 backdrop-blur-sm">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center flex-shrink-0">
+              <Building2 className="w-5 h-5 text-indigo-400" />
             </div>
-            <ChevronDown className="w-5 h-5 text-gray-400" />
+            <div>
+              <div className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold mb-0.5">From</div>
+              <div className="text-sm font-bold text-white">State Bank of India &bull;&bull;&bull;&bull; 4567</div>
+              <div className="text-xs font-semibold text-emerald-400 mt-0.5 cursor-pointer hover:text-emerald-300 transition-colors">Check Balance</div>
+            </div>
           </div>
+          <ChevronDown className="w-5 h-5 text-slate-600" />
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white p-5 pt-2 flex flex-col gap-4">
-        <button 
+      {/* FIXED BOTTOM PAY BUTTON */}
+      <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-[#07080f]/90 backdrop-blur-xl px-4 pt-3 pb-6 border-t border-white/[0.05]">
+        <button
           onClick={handlePayClick}
-          className="w-full bg-indigo-600 text-white font-bold text-lg py-4 rounded-2xl shadow-lg shadow-indigo-200 flex justify-center items-center gap-2"
+          className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 shadow-[0_8px_30px_rgba(139,92,246,0.45)] text-white font-black text-lg py-5 rounded-2xl flex justify-center items-center gap-2.5 cursor-pointer hover:shadow-[0_8px_40px_rgba(139,92,246,0.6)] hover:from-violet-500 hover:to-indigo-500 transition-all active:scale-[0.98]"
         >
-          <div className="border-2 border-white rounded pl-1 pr-0.5 pb-0.5 pt-0.5 text-xs opacity-80">
-            <span className="block border-b-2 border-white w-2.5 h-1"></span>
-          </div>
+          <ShieldCheck className="w-5 h-5 opacity-80" />
           Pay Securely
         </button>
-        <div className="text-center">
-          <span className="text-[10px] text-gray-400 font-medium">Powered by UPI</span>
+        <div className="text-center mt-2.5">
+          <span className="text-[10px] text-slate-600 font-semibold tracking-widest uppercase">Powered by UPI &middot; 256-bit Encrypted</span>
         </div>
       </div>
 
-      {/* PIN Modal */}
+      {/* PIN MODAL */}
       {showPinModal && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl w-full max-w-sm p-6 animate-in zoom-in-95">
-            <h2 className="text-xl font-bold text-gray-900 text-center mb-2">
-              {currentUser?.hasUpiPin ? 'Enter UPI PIN' : 'Set your UPI PIN'}
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-5">
+          <div className="bg-[#0f1024] border border-white/10 rounded-3xl w-full max-w-sm p-6 shadow-[0_30px_80px_rgba(0,0,0,0.7)]">
+            <div className="flex justify-center mb-4">
+              <div className="w-14 h-14 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
+                <ShieldCheck className="w-7 h-7 text-violet-400" />
+              </div>
+            </div>
+            <h2 className="text-xl font-black text-white text-center mb-2">
+              {currentUser?.hasUpiPin ? 'Enter UPI PIN' : 'Set Your UPI PIN'}
             </h2>
-            <p className="text-sm text-gray-500 text-center mb-6">
-              {currentUser?.hasUpiPin 
-                ? `Enter your 4-digit PIN to pay ₹${amount}` 
+            <p className="text-sm text-slate-500 text-center mb-6 leading-relaxed">
+              {currentUser?.hasUpiPin
+                ? `Enter your 4-digit PIN to pay \u20b9${amount}`
                 : 'Since this is your first payment, please set a 4-digit PIN to secure future transactions.'}
             </p>
-            
-            {pinError && <div className="bg-red-50 text-red-600 text-sm p-3 rounded-xl mb-4 text-center">{pinError}</div>}
-            
+            {pinError && (
+              <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm p-3 rounded-xl mb-4 text-center font-medium">
+                {pinError}
+              </div>
+            )}
             <input
               type="password"
               inputMode="numeric"
               maxLength={4}
               value={pinInput}
               onChange={(e) => setPinInput(e.target.value.replace(/[^0-9]/g, ''))}
-              className="w-full text-center text-3xl tracking-[1em] font-bold p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none mb-6"
+              className="w-full bg-white/5 border border-violet-500/40 focus:border-violet-500/80 text-white text-4xl tracking-[1em] text-center rounded-2xl py-4 px-6 outline-none mb-6 font-black transition-colors"
               autoFocus
             />
-            
             <div className="flex gap-3">
-              <button 
+              <button
                 onClick={() => setShowPinModal(false)}
-                className="flex-1 py-3.5 bg-gray-100 text-gray-700 font-bold rounded-xl"
                 disabled={isProcessing}
+                className="flex-1 py-4 bg-white/5 border border-white/10 text-slate-300 font-bold rounded-xl transition-all disabled:opacity-50 cursor-pointer"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={submitPayment}
                 disabled={isProcessing || pinInput.length < 4}
-                className="flex-1 py-3.5 bg-indigo-600 text-white font-bold rounded-xl disabled:opacity-50"
+                className="flex-1 py-4 bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-black rounded-xl disabled:opacity-40 transition-all shadow-[0_4px_20px_rgba(139,92,246,0.35)] cursor-pointer"
               >
-                {isProcessing ? 'Processing...' : 'Submit'}
+                {isProcessing ? 'Processing...' : 'Confirm'}
               </button>
             </div>
           </div>
@@ -561,3 +616,4 @@ export default function Pay() {
     </div>
   );
 }
+

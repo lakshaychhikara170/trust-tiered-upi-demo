@@ -36,15 +36,15 @@ export default function HeldPayment() {
 
   if (!txn) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-gray-50 text-center p-6">
-        <AlertTriangle className="w-16 h-16 text-gray-400 mb-4" />
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">Transaction Not Found</h1>
-        <p className="text-gray-500 mb-8 max-w-xs">
+      <div className="h-screen flex flex-col items-center justify-center bg-[#07080f] text-center p-6">
+        <AlertTriangle className="w-16 h-16 text-slate-600 mb-4" />
+        <h1 className="text-2xl font-bold text-white mb-2">Transaction Not Found</h1>
+        <p className="text-slate-400 mb-8 max-w-xs text-sm">
           This transaction may have been deleted or the session was refreshed. 
         </p>
         <button 
           onClick={() => navigate('/')}
-          className="bg-indigo-600 text-white font-bold py-3 px-8 rounded-xl shadow-lg hover:bg-indigo-700 transition-colors"
+          className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold py-3 px-8 rounded-2xl shadow-lg shadow-violet-500/30 hover:opacity-90 transition-all"
         >
           Back to Dashboard
         </button>
@@ -61,7 +61,6 @@ export default function HeldPayment() {
 
   const submitReport = (e) => {
     e.preventDefault();
-    // Save the user's reason to the transaction — visible to admin reviewer
     if (holdNote.trim()) {
       addHoldReason(id, holdNote.trim());
     } else if (reportReason) {
@@ -79,24 +78,28 @@ export default function HeldPayment() {
 
   if (isReported || txn.status === 'Under Review') {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-red-50 text-center p-6">
-        <ShieldAlert className="w-20 h-20 text-red-500 mb-6" />
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">Investigation Started</h1>
-        <p className="text-gray-600 mb-8 max-w-sm">
+      <div className="h-screen flex flex-col items-center justify-center bg-[#07080f] text-center p-6 relative overflow-hidden">
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-red-600/10 rounded-full blur-3xl pointer-events-none" />
+        
+        <div className="w-24 h-24 bg-red-500/15 border border-red-500/30 rounded-full flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(239,68,68,0.3)] animate-pulse">
+          <ShieldAlert className="w-12 h-12 text-red-400 stroke-[2.5]" />
+        </div>
+        <h1 className="text-2xl font-black text-white mb-3">Investigation Started</h1>
+        <p className="text-slate-400 text-sm mb-8 max-w-sm leading-relaxed">
           We have frozen the funds. Our security team is reviewing this transaction and will update you shortly.
         </p>
-        <div className="w-full space-y-3">
+        <div className="w-full space-y-3 max-w-sm">
           <button 
             onClick={() => navigate('/')}
-            className="w-full bg-red-600 text-white font-bold py-3.5 rounded-xl hover:bg-red-700 transition-colors shadow-lg shadow-red-200"
+            className="w-full bg-gradient-to-r from-red-600 to-rose-600 text-white font-bold py-4 rounded-2xl hover:opacity-95 transition-all shadow-lg shadow-red-600/30"
           >
             Return to Dashboard
           </button>
           <button 
             onClick={() => navigate('/admin')}
-            className="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl hover:bg-slate-800 transition-colors shadow-lg flex justify-center items-center gap-2"
+            className="w-full bg-white/[0.06] border border-white/10 text-white font-bold py-4 rounded-2xl hover:bg-white/10 transition-all flex justify-center items-center gap-2"
           >
-            <ShieldAlert className="w-4 h-4" /> Simulate Bank Admin Review
+            <ShieldAlert className="w-4 h-4 text-emerald-400" /> Simulate Bank Admin Review
           </button>
         </div>
       </div>
@@ -105,19 +108,17 @@ export default function HeldPayment() {
 
   if (txn.status === 'Completed') {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-emerald-50 text-center p-6">
-        <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mb-6">
-          <svg className="w-12 h-12 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-          </svg>
+      <div className="h-screen flex flex-col items-center justify-center bg-[#07080f] text-center p-6 relative overflow-hidden">
+        <div className="w-24 h-24 bg-emerald-500/15 border border-emerald-500/30 rounded-full flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(52,211,153,0.3)]">
+          <CheckCircle2 className="w-12 h-12 text-emerald-400 stroke-[2.5]" />
         </div>
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">Payment Authorized</h1>
-        <p className="text-gray-600 mb-8 max-w-sm">
-          You have successfully overridden the safety hold. ₹{txn.amount.toLocaleString('en-IN')} has been sent to {txn.recipient}.
+        <h1 className="text-2xl font-black text-white mb-3">Payment Authorized</h1>
+        <p className="text-slate-400 text-sm mb-8 max-w-sm leading-relaxed">
+          You have successfully overridden the safety hold. ₹{txn.amount.toLocaleString('en-IN')} has been sent to <span className="text-white font-bold">{txn.recipient}</span>.
         </p>
         <button 
           onClick={() => navigate('/')}
-          className="bg-emerald-600 text-white font-bold py-3 px-8 rounded-xl shadow-lg shadow-emerald-200 hover:bg-emerald-700 transition-colors"
+          className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold py-4 px-8 rounded-2xl shadow-lg shadow-emerald-500/30 hover:opacity-95 transition-all"
         >
           Back to Dashboard
         </button>
@@ -128,26 +129,26 @@ export default function HeldPayment() {
   const isScam = isScamRecipient(txn.upiId, txn.recipient) || txn.isScamFlagged;
 
   return (
-    <div className={`flex flex-col h-screen overflow-y-auto ${isScam ? 'bg-red-50' : 'bg-amber-50'}`}>
-      <div className="bg-white p-4 flex items-center gap-4 shadow-sm sticky top-0 z-10">
-        <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full">
+    <div className="flex flex-col h-screen overflow-y-auto bg-[#07080f] text-white">
+      <div className="bg-[#07080f]/90 backdrop-blur-md p-4 flex items-center gap-4 border-b border-white/[0.08] sticky top-0 z-10">
+        <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-slate-400 hover:text-white hover:bg-white/[0.06] rounded-full transition-colors">
           <ArrowLeft className="w-6 h-6" />
         </button>
-        <h1 className="text-lg font-bold text-gray-800">{isScam ? 'Fraud Protection Alert' : 'Security Hold'}</h1>
+        <h1 className="text-lg font-bold text-white">{isScam ? 'Fraud Protection Alert' : 'Security Hold'}</h1>
       </div>
 
-      <div className="p-6 flex flex-col items-center text-center mt-4 pb-10">
-        <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-5 ${isScam ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-amber-100 text-amber-500'}`}>
-          {isScam ? <ShieldAlert className="w-10 h-10 stroke-[2.5]" /> : <Clock className="w-10 h-10" />}
+      <div className="p-6 flex flex-col items-center text-center mt-2 pb-10">
+        <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-5 ${isScam ? 'bg-red-500/20 border border-red-500/40 text-red-400 shadow-[0_0_30px_rgba(239,68,68,0.4)] animate-pulse' : 'bg-amber-500/20 border border-amber-500/40 text-amber-400 shadow-[0_0_25px_rgba(245,158,11,0.3)]'}`}>
+          {isScam ? <ShieldAlert className="w-10 h-10 stroke-[2.5]" /> : <Clock className="w-10 h-10 stroke-[2.5]" />}
         </div>
         
-        <h2 className="text-xl font-bold text-gray-900 mb-2">
+        <h2 className="text-2xl font-black text-white mb-3">
           {isScam ? 'AI Intercepted: Scam Suspect' : 'Payment Held for Safety'}
         </h2>
-        <p className="text-gray-600 mb-6 text-sm leading-relaxed max-w-sm">
+        <p className="text-slate-400 mb-6 text-sm leading-relaxed max-w-sm">
           {isScam ? (
-            <span className="text-red-700 font-medium">
-              Our AI flagged <b>{txn.upiId}</b> with 14 fraud complaints. To protect your money, the ₹{txn.amount.toLocaleString('en-IN')} transfer has been <b>frozen in 24-hour escrow</b>.
+            <span className="text-red-400 font-medium">
+              Our AI flagged <b className="text-white">{txn.upiId}</b> with 14 fraud complaints. To protect your money, the ₹{txn.amount.toLocaleString('en-IN')} transfer has been <b>frozen in 24-hour escrow</b>.
             </span>
           ) : (
             <>
@@ -156,11 +157,11 @@ export default function HeldPayment() {
           )}
         </p>
 
-        <div className={`bg-white p-5 rounded-2xl shadow-sm w-full mb-6 border ${isScam ? 'border-red-200' : 'border-amber-200'}`}>
-          <div className={`font-bold mb-1 text-sm ${isScam ? 'text-red-600' : 'text-amber-600'}`}>
+        <div className={`p-5 rounded-2xl w-full mb-6 border backdrop-blur-xl ${isScam ? 'bg-red-950/40 border-red-800/50 shadow-[0_0_20px_rgba(239,68,68,0.2)]' : 'bg-amber-950/40 border-amber-800/50 shadow-[0_0_20px_rgba(245,158,11,0.2)]'}`}>
+          <div className={`font-bold mb-1 text-xs uppercase tracking-widest ${isScam ? 'text-red-400' : 'text-amber-400'}`}>
             {isScam ? 'Safety Escrow Remaining' : 'Time Remaining'}
           </div>
-          <div className="text-4xl font-mono text-gray-800 tracking-wider">
+          <div className="text-4xl font-black font-mono text-white tracking-wider">
             {formatTime(timeLeft)}
           </div>
         </div>
@@ -169,7 +170,7 @@ export default function HeldPayment() {
           <div className="w-full mt-auto space-y-3">
             <button 
               onClick={() => setShowReportForm(true)}
-              className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-red-200 transition-colors cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-rose-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-red-600/30 transition-all active:scale-[0.98] cursor-pointer"
             >
               <AlertTriangle className="w-5 h-5" />
               Report Fraud & Cancel Payment
@@ -177,7 +178,7 @@ export default function HeldPayment() {
             
             <button 
               onClick={() => navigate('/admin')}
-              className="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl shadow-md transition-colors cursor-pointer text-sm"
+              className="w-full flex items-center justify-center gap-2 bg-white/[0.06] border border-white/10 hover:bg-white/[0.1] text-white font-bold py-4 rounded-2xl transition-all cursor-pointer text-sm"
             >
               <ShieldAlert className="w-4 h-4 text-emerald-400" />
               Simulate Bank Admin Review
@@ -186,7 +187,7 @@ export default function HeldPayment() {
             {!isScam && (
               <button 
                 onClick={handleAuthorize}
-                className="w-full text-gray-500 font-bold py-2.5 hover:bg-gray-100 rounded-xl transition-all cursor-pointer text-sm"
+                className="w-full text-slate-400 font-bold py-2.5 hover:text-white transition-all cursor-pointer text-sm"
               >
                 I authorize this payment anyway
               </button>
@@ -194,49 +195,48 @@ export default function HeldPayment() {
 
             <button 
               onClick={() => navigate('/')}
-              className="w-full text-gray-600 font-medium py-2 hover:underline transition-all cursor-pointer text-xs"
+              className="w-full text-slate-500 font-medium py-2 hover:text-slate-300 transition-all cursor-pointer text-xs"
             >
               Back to Dashboard
             </button>
           </div>
         ) : (
-          <form onSubmit={submitReport} className="w-full bg-white p-5 rounded-2xl shadow-sm border border-gray-200 text-left animate-in slide-in-from-bottom-4">
-            <h3 className="font-bold text-gray-800 mb-4">Why are you reporting this?</h3>
+          <form onSubmit={submitReport} className="w-full bg-white/[0.04] backdrop-blur-xl p-5 rounded-2xl border border-white/10 text-left animate-in slide-in-from-bottom-4">
+            <h3 className="font-bold text-white mb-4 text-base">Why are you reporting this?</h3>
             <select 
               value={reportReason}
               onChange={(e) => setReportReason(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-xl mb-4 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full p-3.5 border border-white/10 rounded-xl mb-4 bg-white/[0.06] text-white focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
               required
             >
-              <option value="" disabled>Select a reason...</option>
-              <option value="Did not recognize sender">Didn't recognize recipient</option>
-              <option value="Suspected scam">Suspected scam / impersonation</option>
-              <option value="Wrong recipient">Wrong recipient entered</option>
+              <option value="" disabled className="bg-[#0f1024]">Select a reason...</option>
+              <option value="Did not recognize sender" className="bg-[#0f1024]">Didn't recognize recipient</option>
+              <option value="Suspected scam" className="bg-[#0f1024]">Suspected scam / impersonation</option>
+              <option value="Wrong recipient" className="bg-[#0f1024]">Wrong recipient entered</option>
             </select>
 
-            {/* Reason for hold — shown to bank admin reviewer */}
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Additional details <span className="text-gray-400 font-normal">(visible to bank reviewer)</span>
+            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+              Additional details <span className="text-slate-500 font-normal text-none">(visible to reviewer)</span>
             </label>
             <textarea
               value={holdNote}
               onChange={(e) => setHoldNote(e.target.value)}
-              placeholder="Describe what happened, e.g. 'Received a call from someone claiming to be my bank asking me to send money urgently...'"
+              placeholder="Describe what happened, e.g. 'Received a call asking to send money urgently...'"
               rows={3}
-              className="w-full p-3 border border-gray-300 rounded-xl mb-4 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500 text-sm resize-none"
+              className="w-full p-3.5 border border-white/10 rounded-xl mb-4 bg-white/[0.06] text-white focus:outline-none focus:ring-2 focus:ring-red-500 text-sm resize-none placeholder:text-slate-600"
             />
             
             <div className="flex gap-3">
               <button 
                 type="button" 
                 onClick={() => setShowReportForm(false)}
-                className="flex-1 py-3 bg-gray-100 text-gray-700 font-bold rounded-xl"
+                className="flex-1 py-3.5 bg-white/[0.06] text-slate-300 font-bold rounded-xl hover:bg-white/[0.1]"
               >
                 Cancel
               </button>
               <button 
                 type="submit" 
-                className="flex-1 py-3 bg-red-600 text-white font-bold rounded-xl shadow-md"
+                className="flex-1 py-3.5 bg-red-600 text-white font-bold rounded-xl shadow-lg shadow-red-600/30"
               >
                 Submit Report
               </button>

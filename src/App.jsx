@@ -17,7 +17,7 @@ function ProtectedRoute({ children }) {
   const location = useLocation();
   
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return <div className="min-h-screen flex flex-col items-center justify-center bg-[#07080f]"><div className="w-10 h-10 border-2 border-violet-500/30 border-t-violet-500 rounded-full animate-spin mb-4"></div><p className="text-slate-500 text-sm">Loading TrustPay...</p></div>;
   }
   
   if (!currentUser) {
@@ -29,7 +29,7 @@ function ProtectedRoute({ children }) {
 
 export default function App() {
   return (
-    <div className="max-w-md mx-auto bg-gray-50 h-screen overflow-hidden shadow-2xl relative">
+    <div className="max-w-md mx-auto bg-[#07080f] h-screen overflow-hidden shadow-2xl relative" style={{boxShadow: '0 0 0 1px rgba(139,92,246,0.15), 0 25px 80px rgba(0,0,0,0.8)'}}>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
