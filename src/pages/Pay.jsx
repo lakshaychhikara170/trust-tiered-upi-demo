@@ -417,51 +417,124 @@ export default function Pay() {
                   e.stopPropagation();
                   setShowDeepAnalysisModal(true);
                 }}
-                className="w-80 bg-[#0d1117] border border-gray-700/60 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] p-4 backdrop-blur-xl relative overflow-hidden text-left"
+                className={`w-80 bg-[#0c0e17] border rounded-2xl p-4 backdrop-blur-xl relative overflow-hidden text-left transition-all duration-300 ${
+                  isScam
+                    ? 'border-red-500/50 shadow-[0_0_40px_rgba(239,68,68,0.35)]'
+                    : aiScanStatus === 'warning'
+                      ? 'border-amber-500/40 shadow-[0_0_30px_rgba(245,158,11,0.25)]'
+                      : 'border-emerald-500/40 shadow-[0_0_30px_rgba(52,211,153,0.25)]'
+                }`}
               >
-                <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-white/[0.06]">
+                {/* Laser scanline animation overlay */}
+                <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
+                  <div className={`w-full h-10 bg-gradient-to-b from-transparent ${isScam ? 'via-red-500/10' : aiScanStatus === 'warning' ? 'via-amber-500/10' : 'via-emerald-400/10'} to-transparent ai-scanline`} />
+                </div>
+
+                <div className="flex items-center justify-between mb-2.5 pb-2 border-b border-white/[0.08] relative z-10">
                   <div className="flex items-center gap-2">
-                    <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${isScam ? 'bg-red-500 animate-pulse' : aiScanStatus === 'warning' ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'}`} />
-                    <span className={`font-extrabold text-[10px] uppercase tracking-[0.15em] ${isScam ? 'text-red-400' : aiScanStatus === 'warning' ? 'text-amber-400' : 'text-emerald-400'}`}>
-                      {isScam ? 'FRAUD ALERT' : 'AI Trust Analysis'}
+                    <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${isScam ? 'bg-red-500 animate-ping' : aiScanStatus === 'warning' ? 'bg-amber-400 animate-ping' : 'bg-emerald-400 animate-pulse'}`} />
+                    <span className={`font-black text-[10px] uppercase tracking-[0.15em] ${isScam ? 'text-red-400' : aiScanStatus === 'warning' ? 'text-amber-400' : 'text-emerald-400'}`}>
+                      {isScam ? 'FRAUD ALERT DETECTED' : 'AI Trust Analysis'}
                     </span>
                   </div>
                   <button
                     onClick={(e) => { e.stopPropagation(); setIsAiExpanded(false); }}
-                    className="w-6 h-6 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white text-xs transition-all flex-shrink-0"
+                    className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-slate-400 hover:text-white text-xs transition-all flex-shrink-0"
                   >
                     &#x2715;
                   </button>
                 </div>
-                <div className="font-mono text-[11px] space-y-2">
+
+                {/* NEURAL SCAN WAVE (ANIMATED EQUALIZER) */}
+                <div className="flex items-center justify-between px-2.5 py-1.5 mb-3 bg-white/[0.04] rounded-xl border border-white/[0.06] relative z-10">
+                  <div className="flex items-center gap-1.5 text-[9px] font-mono text-slate-400 font-bold tracking-widest uppercase">
+                    <span className={`w-1.5 h-1.5 rounded-full ${isScam ? 'bg-red-400 animate-ping' : aiScanStatus === 'warning' ? 'bg-amber-400 animate-ping' : 'bg-emerald-400 animate-pulse'}`} />
+                    <span>NEURAL WAVE</span>
+                  </div>
+                  <div className="flex items-end gap-1 h-3.5">
+                    <div className={`w-1 rounded-full eq-bar-1 ${isScam ? 'bg-red-400' : aiScanStatus === 'warning' ? 'bg-amber-400' : 'bg-emerald-400'}`} />
+                    <div className={`w-1 rounded-full eq-bar-2 ${isScam ? 'bg-red-500' : aiScanStatus === 'warning' ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+                    <div className={`w-1 rounded-full eq-bar-3 ${isScam ? 'bg-rose-400' : aiScanStatus === 'warning' ? 'bg-yellow-400' : 'bg-teal-400'}`} />
+                    <div className={`w-1 rounded-full eq-bar-4 ${isScam ? 'bg-red-400' : aiScanStatus === 'warning' ? 'bg-amber-400' : 'bg-emerald-400'}`} />
+                    <div className={`w-1 rounded-full eq-bar-5 ${isScam ? 'bg-red-500' : aiScanStatus === 'warning' ? 'bg-amber-500' : 'bg-teal-300'}`} />
+                  </div>
+                </div>
+
+                {/* TERMINAL ROWS */}
+                <div className="font-mono text-[11px] space-y-2 relative z-10">
                   {isScam ? (
                     <>
-                      <div className="flex justify-between"><span className="text-slate-500">&gt; RECIPIENT:</span><span className="text-red-400 font-bold animate-pulse">SUSPECTED SCAMMER</span></div>
-                      <div className="flex justify-between"><span className="text-slate-500">&gt; RISK SCORE:</span><span className="text-red-400 font-bold">99.4% &#8212; CRITICAL</span></div>
-                      <div className="flex justify-between"><span className="text-slate-500">&gt; COMPLAINTS:</span><span className="text-red-400">14 Active Flags</span></div>
-                      <div className="flex justify-between"><span className="text-slate-500">&gt; AI VERDICT:</span><span className="text-red-500 font-extrabold">DO NOT PAY</span></div>
-                      <div className="mt-3 text-center text-[10px] font-bold text-red-300 bg-red-950/60 border border-red-800/50 py-2 px-3 rounded-xl animate-pulse tracking-wider">
-                        &#9888; MANDATORY 24H SAFETY HOLD
+                      <div className="flex justify-between items-center py-0.5 border-b border-white/[0.04]">
+                        <span className="text-slate-500">&gt; RECIPIENT:</span>
+                        <span className="text-red-400 font-extrabold animate-pulse tracking-wide">
+                          SUSPECTED SCAMMER <span className="w-1.5 h-3 bg-red-400 inline-block cursor-blink" />
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-0.5 border-b border-white/[0.04]">
+                        <span className="text-slate-500">&gt; RISK SCORE:</span>
+                        <span className="text-red-400 font-bold">99.4% &#8212; CRITICAL</span>
+                      </div>
+                      <div className="flex justify-between items-center py-0.5 border-b border-white/[0.04]">
+                        <span className="text-slate-500">&gt; COMPLAINTS:</span>
+                        <span className="text-red-400 font-bold">14 Active Flags</span>
+                      </div>
+                      <div className="flex justify-between items-center py-0.5 border-b border-white/[0.04]">
+                        <span className="text-slate-500">&gt; AI VERDICT:</span>
+                        <span className="text-red-500 font-black">DO NOT PAY</span>
+                      </div>
+                      <div className="mt-3 text-center text-[10px] font-extrabold text-red-300 bg-gradient-to-r from-red-950/90 via-rose-950/70 to-red-950/90 border border-red-500/50 py-2.5 px-3 rounded-xl animate-pulse tracking-wider shadow-[0_0_25px_rgba(239,68,68,0.5)] flex items-center justify-center gap-1.5">
+                        <ShieldAlert className="w-3.5 h-3.5 text-red-400 animate-pulse" />
+                        <span>MANDATORY 24H SAFETY HOLD</span>
                       </div>
                     </>
                   ) : aiScanStatus === 'warning' ? (
                     <>
-                      <div className="flex justify-between"><span className="text-slate-500">&gt; RECIPIENT:</span><span className="text-amber-400 font-bold">NEW / UNKNOWN</span></div>
-                      <div className="flex justify-between"><span className="text-slate-500">&gt; CRIMINAL RECORD:</span><span className="text-emerald-400">NONE FOUND</span></div>
-                      <div className="flex justify-between"><span className="text-slate-500">&gt; TRUST HISTORY:</span><span className="text-slate-300">NO PRIOR TXNS</span></div>
-                      <div className="flex justify-between"><span className="text-slate-500">&gt; RISK SCORE:</span><span className="text-amber-400 font-bold">MODERATE</span></div>
-                      <div className="mt-3 text-center text-[10px] font-bold text-amber-400 bg-amber-950/40 border border-amber-800/30 py-2 px-3 rounded-xl tracking-wider">
-                        &#9889; THRESHOLD HOLD IF ABOVE LIMIT
+                      <div className="flex justify-between items-center py-0.5 border-b border-white/[0.04]">
+                        <span className="text-slate-500">&gt; RECIPIENT:</span>
+                        <span className="text-amber-400 font-bold">
+                          NEW / UNKNOWN <span className="w-1.5 h-3 bg-amber-400 inline-block cursor-blink" />
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-0.5 border-b border-white/[0.04]">
+                        <span className="text-slate-500">&gt; CRIMINAL RECORD:</span>
+                        <span className="text-emerald-400 font-bold">NONE FOUND</span>
+                      </div>
+                      <div className="flex justify-between items-center py-0.5 border-b border-white/[0.04]">
+                        <span className="text-slate-500">&gt; TRUST HISTORY:</span>
+                        <span className="text-slate-300 font-bold">NO PRIOR TXNS</span>
+                      </div>
+                      <div className="flex justify-between items-center py-0.5 border-b border-white/[0.04]">
+                        <span className="text-slate-500">&gt; RISK SCORE:</span>
+                        <span className="text-amber-400 font-bold">MODERATE</span>
+                      </div>
+                      <div className="mt-3 text-center text-[10px] font-extrabold text-amber-300 bg-gradient-to-r from-amber-950/80 via-yellow-950/50 to-amber-950/80 border border-amber-500/40 py-2.5 px-3 rounded-xl tracking-wider shadow-[0_0_20px_rgba(245,158,11,0.3)] flex items-center justify-center gap-1.5">
+                        <AlertCircle className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                        <span>THRESHOLD HOLD IF ABOVE LIMIT</span>
                       </div>
                     </>
                   ) : (
                     <>
-                      <div className="flex justify-between"><span className="text-slate-500">&gt; RECIPIENT:</span><span className="text-emerald-400 font-bold">TRUSTED</span></div>
-                      <div className="flex justify-between"><span className="text-slate-500">&gt; NETWORK:</span><span className="text-emerald-400">VERIFIED</span></div>
-                      <div className="flex justify-between"><span className="text-slate-500">&gt; HISTORY:</span><span className="text-emerald-400">SECURE</span></div>
-                      <div className="flex justify-between"><span className="text-slate-500">&gt; RISK SCORE:</span><span className="text-emerald-400 font-bold">LOW</span></div>
-                      <div className="mt-3 text-center text-[10px] font-bold text-emerald-400 bg-emerald-950/40 border border-emerald-800/30 py-2 px-3 rounded-xl tracking-wider">
-                        &#10003; CLEARED FOR TRANSFER
+                      <div className="flex justify-between items-center py-0.5 border-b border-white/[0.04]">
+                        <span className="text-slate-500">&gt; RECIPIENT:</span>
+                        <span className="text-emerald-400 font-bold">
+                          TRUSTED <span className="w-1.5 h-3 bg-emerald-400 inline-block cursor-blink" />
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-0.5 border-b border-white/[0.04]">
+                        <span className="text-slate-500">&gt; NETWORK:</span>
+                        <span className="text-emerald-400 font-bold">VERIFIED</span>
+                      </div>
+                      <div className="flex justify-between items-center py-0.5 border-b border-white/[0.04]">
+                        <span className="text-slate-500">&gt; HISTORY:</span>
+                        <span className="text-emerald-400 font-bold">SECURE</span>
+                      </div>
+                      <div className="flex justify-between items-center py-0.5 border-b border-white/[0.04]">
+                        <span className="text-slate-500">&gt; RISK SCORE:</span>
+                        <span className="text-emerald-400 font-bold">LOW</span>
+                      </div>
+                      <div className="mt-3 text-center text-[10px] font-extrabold text-emerald-300 bg-gradient-to-r from-emerald-950/80 via-emerald-900/50 to-emerald-950/80 border border-emerald-500/40 py-2.5 px-3 rounded-xl tracking-wider shadow-[0_0_20px_rgba(52,211,153,0.3)] flex items-center justify-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 animate-bounce" />
+                        <span>CLEARED FOR TRANSFER</span>
                       </div>
                     </>
                   )}
@@ -469,14 +542,15 @@ export default function Pay() {
                   {/* DOUBLE CLICK HINT BUTTON */}
                   <div 
                     onClick={(e) => { e.stopPropagation(); setShowDeepAnalysisModal(true); }}
-                    className="mt-3 pt-2.5 border-t border-white/[0.08] text-center text-[10px] font-bold text-violet-300 bg-violet-950/50 hover:bg-violet-900/60 border border-violet-700/50 py-2 px-3 rounded-xl cursor-pointer transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95"
+                    className="mt-3 pt-2 text-center text-[10px] font-bold text-violet-300 bg-gradient-to-r from-violet-950/70 via-indigo-900/60 to-purple-950/70 hover:from-violet-900/80 hover:to-indigo-900/80 border border-violet-500/40 py-2.5 px-3 rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(139,92,246,0.25)] hover:scale-[1.02] active:scale-[0.98]"
                   >
-                    <Activity className="w-3.5 h-3.5 text-violet-400 animate-pulse" />
-                    <span>Double-Click or Tap for Deep Parameters 🔬</span>
+                    <Activity className="w-3.5 h-3.5 text-violet-400 animate-spin" style={{ animationDuration: '3s' }} />
+                    <span className="tracking-wide">Double-Click / Tap for Deep Parameters 🔬</span>
                   </div>
                 </div>
               </div>
             )}
+
           </div>
         </div>
 
