@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { isScamRecipient } from '../utils/mockData';
@@ -31,6 +31,8 @@ export default function Pay() {
   const [pin, setPin] = useState(['', '', '', '']);
   const [aiScanStatus, setAiScanStatus] = useState('idle');
   const [isAiExpanded, setIsAiExpanded] = useState(false);
+  const [showDeepAnalysisModal, setShowDeepAnalysisModal] = useState(false);
+  const [showRawJson, setShowRawJson] = useState(false);
 
   // Check risk dynamically based on input
   let recipient = merchants.find(c => c.upiId === recipientInput || c.name === recipientInput);
@@ -337,17 +339,28 @@ export default function Pay() {
         <div className="relative flex items-center justify-end" style={{ minWidth: 40, minHeight: 40 }}>
           <div
             onClick={() => {
-              if (aiScanStatus === 'warning' || aiScanStatus === 'safe') {
+              if (aiScanStatus === 'warning' || aiScanStatus === 'safe' || isScam) {
                 setIsAiExpanded(!isAiExpanded);
               }
             }}
+            onDoubleClick={(e) => {
+              e.stopPropagation();
+              setShowDeepAnalysisModal(true);
+            }}
             className={`absolute top-0 right-0 z-50 transition-all duration-300 ease-out origin-top-right cursor-pointer ${
-              !isAiExpanded ? 'w-10 h-10 rounded-full flex items-center justify-center' : 'w-72 rounded-2xl'
+              !isAiExpanded ? 'w-10 h-10 rounded-full flex items-center justify-center' : 'w-80 rounded-2xl'
             }`}
           >
             {/* COLLAPSED ORB */}
             {!isAiExpanded && (
               <div className="relative w-10 h-10 flex items-center justify-center">
+                {/* Glow ring */}
+                <div className={`absolute -inset-1 rounded-full opacity-50 blur-md ${
+                  isScam ? 'bg-red-500 animate-pulse' :
+                  aiScanStatus === 'warning' ? 'bg-amber-500 animate-pulse' :
+                  aiScanStatus === 'safe' ? 'bg-emerald-500' : 'bg-violet-500'
+                }`} />
+
                 {/* IDLE ghost */}
                 {aiScanStatus === 'idle' && (
                   <div className="absolute inset-0 rounded-full bg-white/5 border border-white/10" />
@@ -399,11 +412,17 @@ export default function Pay() {
 
             {/* EXPANDED PANEL */}
             {isAiExpanded && (
-              <div className="w-72 bg-[#0d1117] border border-gray-700/50 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] p-4">
+              <div 
+                onDoubleClick={(e) => {
+                  e.stopPropagation();
+                  setShowDeepAnalysisModal(true);
+                }}
+                className="w-80 bg-[#0d1117] border border-gray-700/60 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] p-4 backdrop-blur-xl relative overflow-hidden text-left"
+              >
                 <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-white/[0.06]">
                   <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full flex-shrink-0 ${isScam ? 'bg-red-500 animate-pulse' : aiScanStatus === 'warning' ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'}`} />
-                    <span className={`font-bold text-[10px] uppercase tracking-[0.15em] ${isScam ? 'text-red-400' : aiScanStatus === 'warning' ? 'text-amber-400' : 'text-emerald-400'}`}>
+                    <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${isScam ? 'bg-red-500 animate-pulse' : aiScanStatus === 'warning' ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'}`} />
+                    <span className={`font-extrabold text-[10px] uppercase tracking-[0.15em] ${isScam ? 'text-red-400' : aiScanStatus === 'warning' ? 'text-amber-400' : 'text-emerald-400'}`}>
                       {isScam ? 'FRAUD ALERT' : 'AI Trust Analysis'}
                     </span>
                   </div>
@@ -446,11 +465,21 @@ export default function Pay() {
                       </div>
                     </>
                   )}
+
+                  {/* DOUBLE CLICK HINT BUTTON */}
+                  <div 
+                    onClick={(e) => { e.stopPropagation(); setShowDeepAnalysisModal(true); }}
+                    className="mt-3 pt-2.5 border-t border-white/[0.08] text-center text-[10px] font-bold text-violet-300 bg-violet-950/50 hover:bg-violet-900/60 border border-violet-700/50 py-2 px-3 rounded-xl cursor-pointer transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95"
+                  >
+                    <Activity className="w-3.5 h-3.5 text-violet-400 animate-pulse" />
+                    <span>Double-Click or Tap for Deep Parameters 🔬</span>
+                  </div>
                 </div>
               </div>
             )}
           </div>
         </div>
+
       </div>
 
       {/* SCROLLABLE BODY */}
@@ -608,6 +637,130 @@ export default function Pay() {
                 className="flex-1 py-4 bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-black rounded-xl disabled:opacity-40 transition-all shadow-[0_4px_20px_rgba(139,92,246,0.35)] cursor-pointer"
               >
                 {isProcessing ? 'Processing...' : 'Confirm'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* DEEP AI RISK ANALYSIS MODAL (Double Click / Tap Feature) */}
+      {showDeepAnalysisModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+          <div className="bg-[#0c0e18] border border-violet-500/30 rounded-3xl w-full max-w-md max-h-[90vh] flex flex-col shadow-[0_0_60px_rgba(139,92,246,0.35)] overflow-hidden animate-in zoom-in-95">
+            {/* Header */}
+            <div className="p-5 border-b border-white/10 flex items-center justify-between bg-violet-950/30">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-violet-500/20 border border-violet-500/40 flex items-center justify-center text-violet-400">
+                  <Activity className="w-5 h-5 animate-pulse" />
+                </div>
+                <div>
+                  <h2 className="text-base font-black text-white flex items-center gap-2">
+                    Neural Risk Engine <span className="text-xs text-violet-400 font-mono px-2 py-0.5 rounded-full bg-violet-500/20 border border-violet-500/30">v1.0.0</span>
+                  </h2>
+                  <p className="text-xs text-slate-400">Deep Threat Parameter Breakdown</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowDeepAnalysisModal(false)}
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center text-sm font-bold transition-all"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Content Area */}
+            <div className="p-5 overflow-y-auto space-y-4 flex-1 scrollbar-hide text-left">
+              {/* Recipient Overview Card */}
+              <div className={`p-4 rounded-2xl border backdrop-blur-xl ${
+                isScam ? 'bg-red-950/40 border-red-800/50' : isHighRisk ? 'bg-amber-950/40 border-amber-800/50' : 'bg-emerald-950/40 border-emerald-800/50'
+              }`}>
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Target VPA</div>
+                    <div className="font-mono text-sm font-bold text-white">{finalUpiId || 'Not Entered'}</div>
+                  </div>
+                  <div className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
+                    isScam ? 'bg-red-500 text-white' : isHighRisk ? 'bg-amber-500 text-black' : 'bg-emerald-500 text-black'
+                  }`}>
+                    {isScam ? 'CRITICAL RISK 99.4%' : isHighRisk ? 'MODERATE RISK 48.5%' : 'LOW RISK 2.1%'}
+                  </div>
+                </div>
+                <div className="text-xs text-slate-300">
+                  {isScam ? '⚡ Threat Categories: mule_account_signal, fake_qr, phishing_collect' : isHighRisk ? '⚡ Threat Category: first_time_high_value' : '⚡ Threat Category: none (cleared)'}
+                </div>
+              </div>
+
+              {/* View Toggle */}
+              <div className="flex rounded-xl bg-white/5 border border-white/10 p-1">
+                <button
+                  onClick={() => setShowRawJson(false)}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${!showRawJson ? 'bg-violet-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
+                >
+                  📊 Parameter Metrics (12 Vectors)
+                </button>
+                <button
+                  onClick={() => setShowRawJson(true)}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${showRawJson ? 'bg-violet-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
+                >
+                  💻 Raw Classifier JSON
+                </button>
+              </div>
+
+              {!showRawJson ? (
+                <div className="space-y-3">
+                  {[
+                    { label: '1. VPA Blacklist Database Match', val: isScam ? 'MATCHED (scammer@fakepay)' : 'CLEARED (0 matches)', pct: isScam ? 100 : 0, color: isScam ? 'bg-red-500' : 'bg-emerald-500' },
+                    { label: '2. Payee Account Age Signal', val: isScam ? '< 24 Hours Old (Mule Signal)' : isHighRisk ? '< 30 Days Old' : '365+ Days (Established)', pct: isScam ? 95 : isHighRisk ? 60 : 5, color: isScam ? 'bg-red-500' : isHighRisk ? 'bg-amber-500' : 'bg-emerald-500' },
+                    { label: '3. Transaction Spike Ratio', val: `${amount || 0} INR (${((parseFloat(amount)||0)/1500).toFixed(1)}x avg)`, pct: Math.min(100, (parseFloat(amount)||0) / 100), color: (parseFloat(amount)||0) > 3000 ? 'bg-amber-500' : 'bg-emerald-500' },
+                    { label: '4. Global Scam Complaints', val: isScam ? '14 Active Police Complaints' : '0 Complaints Filed', pct: isScam ? 92 : 0, color: isScam ? 'bg-red-500' : 'bg-emerald-500' },
+                    { label: '5. Device ID Fingerprint', val: 'Verified Windows Workstation', pct: 5, color: 'bg-emerald-500' },
+                    { label: '6. Geolocation Anomaly Index', val: '0.02 (Home Wi-Fi Location)', pct: 2, color: 'bg-emerald-500' },
+                    { label: '7. Request Note Sentiment', val: 'Clean (No Phishing Keywords)', pct: 0, color: 'bg-emerald-500' },
+                    { label: '8. Trust History Depth', val: trustHistory.some(t => t.upiId === finalUpiId) ? 'Verified Trust Relationship' : '0 Prior Transfers', pct: trustHistory.some(t => t.upiId === finalUpiId) ? 0 : 50, color: trustHistory.some(t => t.upiId === finalUpiId) ? 'bg-emerald-500' : 'bg-amber-500' },
+                    { label: '9. Network Centrality Risk', val: isScam ? 'Cluster Center Node (Fraud Net)' : 'Isolated Normal Node', pct: isScam ? 98 : 10, color: isScam ? 'bg-red-500' : 'bg-emerald-500' },
+                    { label: '10. Escrow Safety Threshold', val: `Personal Limit: ₹${threshold.toLocaleString('en-IN')}`, pct: (parseFloat(amount)||0) > threshold ? 85 : 20, color: (parseFloat(amount)||0) > threshold ? 'bg-amber-500' : 'bg-emerald-500' },
+                    { label: '11. Recipient Merchant Status', val: isMerchant ? 'NPCI Verified Merchant' : 'Unverified Individual VPA', pct: isMerchant ? 0 : 40, color: isMerchant ? 'bg-emerald-500' : 'bg-amber-500' },
+                    { label: '12. AI Model Verdict Action', val: isScam ? 'BLOCK_WITH_OVERRIDE' : isHighRisk ? 'HARD_CONFIRM' : 'ALLOW', pct: isScam ? 100 : isHighRisk ? 50 : 0, color: isScam ? 'bg-red-500' : isHighRisk ? 'bg-amber-500' : 'bg-emerald-500' },
+                  ].map((item, i) => (
+                    <div key={i} className="bg-white/[0.03] border border-white/[0.06] p-3 rounded-xl">
+                      <div className="flex justify-between items-center text-xs font-bold mb-1.5">
+                        <span className="text-slate-300">{item.label}</span>
+                        <span className="text-white font-mono text-[11px]">{item.val}</span>
+                      </div>
+                      <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
+                        <div className={`h-full ${item.color} transition-all duration-500`} style={{ width: `${item.pct}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-[#080a12] border border-white/10 p-4 rounded-xl font-mono text-xs text-emerald-400 overflow-x-auto">
+                  <pre>{JSON.stringify({
+                    transaction_type: "send_money",
+                    payee_vpa: finalUpiId || "scammer@fakepay",
+                    payee_display_name: recipient?.name || recipientInput || "Unknown",
+                    amount: parseFloat(amount) || 0,
+                    is_first_time_payee: !trustHistory.some(t => t.upiId === finalUpiId),
+                    payee_account_age_days: isScam ? 1 : 365,
+                    user_avg_transaction_amount: 1500,
+                    user_recent_device_change: false,
+                    user_recent_location_change: false,
+                    known_blacklist_match: isScam,
+                    verdict: {
+                      severity: isScam ? "HIGH" : isHighRisk ? "MEDIUM" : "NONE",
+                      recommended_action: isScam ? "block_with_override" : isHighRisk ? "hard_confirm" : "allow",
+                      categories: isScam ? ["mule_account_signal", "fake_qr"] : isHighRisk ? ["first_time_high_value"] : ["none"]
+                    }
+                  }, null, 2)}</pre>
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 border-t border-white/10 bg-[#0f1024]">
+              <button
+                onClick={() => setShowDeepAnalysisModal(false)}
+                className="w-full py-3.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold rounded-2xl shadow-lg shadow-violet-500/25 active:scale-[0.98] transition-all"
+              >
+                Close Analysis Window
               </button>
             </div>
           </div>
